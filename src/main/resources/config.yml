@@ -1,5 +1,14 @@
 # KartaAuctionHouse Configuration
 
+# --- Auction Settings ---
+auction:
+  max-auctions-per-player: 5
+  auction-duration: 48h
+  bid-increment: 5% # or flat value
+  anti-sniping-extension: 30s
+  tax-percentage: 5
+  notification-methods: [chat, actionbar, title, sound]
+
 # --- Economy Settings ---
 economy:
   # Preferred economy provider. Options: KARTAEMERALDCURRENCY, VAULT
@@ -7,40 +16,12 @@ economy:
   preferred: VAULT
   # Fallback provider if the preferred one is not found.
   fallback: VAULT
-  # Tax settings for sales.
-  tax:
-    enabled: true
-    # Percentage of the final sale price to be taken as tax.
-    percent: 5.0
-  # Listing fee settings.
-  listing-fee:
-    enabled: false
-    # A flat fee charged to the player when they list an item.
-    amount: 10.0
   # Sink account for tax and listing fees.
   sink:
     # Where to deposit collected fees. Options: NONE, VAULT_ACCOUNT, KARTA_ACCOUNT
     mode: NONE
     # The name of the account to deposit into (e.g., a server bank name).
     target: "server_treasury"
-
-# --- Auction Settings ---
-auction:
-  # Default values for auction listings.
-  defaults:
-    duration: "24h"
-  # Duration limits for auctions. Use 's' for seconds, 'm' for minutes, 'h' for hours, 'd' for days.
-  min-duration: "10m"
-  max-duration: "7d"
-  # Minimum price an item can be listed for.
-  min-price: 1.0
-  # The minimum percentage increase required for a new bid.
-  # e.g., 5.0 means a new bid must be at least 5% higher than the current one.
-  min-bid-increment-percent: 5.0
-  # Limits on player activity.
-  limits:
-    # The maximum number of auctions a single player can have active at one time.
-    max-active-listings-per-player: 10
 
 # --- Mailbox Settings ---
 mailbox:

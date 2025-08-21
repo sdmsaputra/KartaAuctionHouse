@@ -29,4 +29,9 @@ public interface EconomyService {
      * Formats a double amount into a currency string (e.g., "$1,234.56").
      */
     String format(double amount);
+
+    /**
+     * Gets the balance of a player.
+     */
+    CompletableFuture<Double> getBalance(UUID player);
 }

@@ -56,6 +56,14 @@ public class VaultEconomyService implements EconomyService {
         return vault.format(amount);
     }
 
+    @Override
+    public CompletableFuture<Double> getBalance(UUID playerId) {
+        return supplyOnMainThread(() -> {
+            OfflinePlayer player = Bukkit.getOfflinePlayer(playerId);
+            return vault.getBalance(player);
+        });
+    }
+
     private <T> CompletableFuture<T> supplyOnMainThread(Supplier<T> supplier) {
         CompletableFuture<T> future = new CompletableFuture<>();
         if (Bukkit.isPrimaryThread()) {

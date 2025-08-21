@@ -60,4 +60,12 @@ public class KartaEmeraldEconomyService implements EconomyService {
     public String format(double amount) {
         return String.format("%.2f Emeralds", amount);
     }
+
+    @Override
+    public CompletableFuture<Double> getBalance(UUID player) {
+        if (!isEnabled) return CompletableFuture.completedFuture(0.0);
+        // TODO: Implement actual API call to KartaEmeraldCurrency
+        plugin.getLogger().warning("KartaEmeraldEconomyService#getBalance is not yet implemented.");
+        return CompletableFuture.completedFuture(0.0);
+    }
 }

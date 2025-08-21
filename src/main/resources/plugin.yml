@@ -30,3 +30,24 @@ permissions:
     default: op
     children:
       kartaauctionhouse.reload: true
+      kartaauctionhouse.search: true
+      kartaauctionhouse.categories: true
+      kartaauctionhouse.notify: true
+      kartaauctionhouse.history: true
+      kartaauctionhouse.history.others: true
+
+  kartaauctionhouse.search:
+    description: Allows using /ah search.
+    default: true
+  kartaauctionhouse.categories:
+    description: Allows using /ah categories.
+    default: true
+  kartaauctionhouse.notify:
+    description: Allows toggling notifications.
+    default: true
+  kartaauctionhouse.history:
+    description: Allows viewing personal auction history.
+    default: true
+  kartaauctionhouse.history.others:
+    description: Allows viewing others' auction history.
+    default: op
