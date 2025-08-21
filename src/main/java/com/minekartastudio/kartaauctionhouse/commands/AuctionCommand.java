@@ -3,9 +3,12 @@ package com.minekartastudio.kartaauctionhouse.commands;
 import com.minekartastudio.kartaauctionhouse.KartaAuctionHouse;
 import com.minekartastudio.kartaauctionhouse.auction.AuctionService;
 import com.minekartastudio.kartaauctionhouse.config.ConfigManager;
+import com.minekartastudio.kartaauctionhouse.gui.HistoryGui;
 import com.minekartastudio.kartaauctionhouse.gui.MainAuctionGui;
 import com.minekartastudio.kartaauctionhouse.gui.MailboxGui;
 import com.minekartastudio.kartaauctionhouse.gui.MyListingsGui;
+import com.minekartastudio.kartaauctionhouse.gui.model.AuctionCategory;
+import com.minekartastudio.kartaauctionhouse.gui.model.SortOrder;
 import com.minekartastudio.kartaauctionhouse.mailbox.MailboxService;
 import com.minekartastudio.kartaauctionhouse.util.DurationParser;
 import org.bukkit.command.Command;
@@ -21,12 +24,14 @@ public class AuctionCommand implements CommandExecutor {
     private final AuctionService auctionService;
     private final MailboxService mailboxService;
     private final ConfigManager configManager;
+    private final com.minekartastudio.kartaauctionhouse.players.PlayerSettingsService playerSettingsService;
 
-    public AuctionCommand(KartaAuctionHouse plugin, AuctionService auctionService, MailboxService mailboxService, ConfigManager configManager) {
+    public AuctionCommand(KartaAuctionHouse plugin, AuctionService auctionService, MailboxService mailboxService, ConfigManager configManager, com.minekartastudio.kartaauctionhouse.players.PlayerSettingsService playerSettingsService) {
         this.plugin = plugin;
         this.auctionService = auctionService;
         this.mailboxService = mailboxService;
         this.configManager = configManager;
+        this.playerSettingsService = playerSettingsService;
     }
 
     @Override
@@ -37,7 +42,7 @@ public class AuctionCommand implements CommandExecutor {
         }
 
         if (args.length == 0) {
-            new MainAuctionGui(plugin, player, 1).open();
+            new MainAuctionGui(plugin, player, 1, AuctionCategory.ALL, SortOrder.NEWEST, null).open();
             return true;
         }
 
@@ -47,10 +52,11 @@ public class AuctionCommand implements CommandExecutor {
             case "mailbox" -> new MailboxGui(plugin, player, 1).open();
             case "listings", "myauctions" -> new MyListingsGui(plugin, player, 1).open();
             case "reload" -> handleReload(player);
-            // Bidding and buying are handled via GUI, but you could add command versions
-            // case "bid" -> handleBid(player, args);
-            // case "cancel" -> handleCancel(player, args);
-            default -> new MainAuctionGui(plugin, player, 1).open();
+            case "search" -> handleSearch(player, args);
+            case "category", "categories" -> handleCategory(player, args);
+            case "notify" -> handleNotify(player, args);
+            case "history" -> handleHistory(player, args);
+            default -> new MainAuctionGui(plugin, player, 1, AuctionCategory.ALL, SortOrder.NEWEST, null).open();
         }
 
         return true;
@@ -95,16 +101,24 @@ public class AuctionCommand implements CommandExecutor {
             return;
         }
 
-        ItemStack toSell = itemInHand.clone();
-        player.getInventory().setItemInMainHand(null); // Remove item from hand
-
-        auctionService.createListing(player, toSell, price, buyNow, durationMillis).thenAccept(success -> {
-            if (success) {
-                player.sendMessage(configManager.getPrefixedMessage("info.listed", "{item}", toSell.getType().toString(), "{price}", String.valueOf(price)));
-            } else {
-                player.sendMessage(configManager.getPrefixedMessage("errors.generic-error", "Failed to list item."));
-                player.getInventory().addItem(toSell); // Return item on failure
+        int maxAuctions = configManager.getConfig().getInt("auction.max-auctions-per-player", 5);
+        auctionService.countActiveAuctions(player).thenAccept(count -> {
+            if (count >= maxAuctions) {
+                player.sendMessage(configManager.getPrefixedMessage("errors.listing-limit-reached", "{limit}", String.valueOf(maxAuctions)));
+                return;
             }
+
+            ItemStack toSell = itemInHand.clone();
+            player.getInventory().setItemInMainHand(null); // Remove item from hand
+
+            auctionService.createListing(player, toSell, price, buyNow, null, durationMillis).thenAccept(success -> {
+                if (success) {
+                    player.sendMessage(configManager.getPrefixedMessage("info.listed", "{item}", toSell.getType().toString(), "{price}", String.valueOf(price)));
+                } else {
+                    player.sendMessage(configManager.getPrefixedMessage("errors.generic-error", "Failed to list item."));
+                    player.getInventory().addItem(toSell); // Return item on failure
+                }
+            });
         });
     }
 
@@ -115,5 +129,82 @@ public class AuctionCommand implements CommandExecutor {
         }
         configManager.loadConfigs();
         player.sendMessage(configManager.getPrefixedMessage("info.reload-success"));
+    }
+
+    private void handleSearch(Player player, String[] args) {
+        if (!player.hasPermission("kartaauctionhouse.search")) {
+            player.sendMessage(configManager.getPrefixedMessage("errors.no-permission"));
+            return;
+        }
+
+        if (args.length < 2) {
+            player.sendMessage(configManager.getPrefixedMessage("errors.usage-search", "{usage}", "/ah search <keyword>"));
+            return;
+        }
+
+        String searchQuery = String.join(" ", java.util.Arrays.copyOfRange(args, 1, args.length));
+        new MainAuctionGui(plugin, player, 1, AuctionCategory.ALL, SortOrder.NEWEST, searchQuery).open();
+    }
+
+    private void handleCategory(Player player, String[] args) {
+        if (!player.hasPermission("kartaauctionhouse.categories")) {
+            player.sendMessage(configManager.getPrefixedMessage("errors.no-permission"));
+            return;
+        }
+
+        AuctionCategory category = AuctionCategory.ALL;
+        if (args.length > 1) {
+            try {
+                category = AuctionCategory.valueOf(args[1].toUpperCase());
+            } catch (IllegalArgumentException e) {
+                player.sendMessage(configManager.getPrefixedMessage("errors.invalid-category", "{category}", args[1]));
+                return;
+            }
+        }
+
+        new MainAuctionGui(plugin, player, 1, category, SortOrder.NEWEST, null).open();
+    }
+
+    private void handleNotify(Player player, String[] args) {
+        if (!player.hasPermission("kartaauctionhouse.notify")) {
+            player.sendMessage(configManager.getPrefixedMessage("errors.no-permission"));
+            return;
+        }
+
+        if (args.length < 2 || (!args[1].equalsIgnoreCase("on") && !args[1].equalsIgnoreCase("off"))) {
+            player.sendMessage(configManager.getPrefixedMessage("errors.usage-notify", "{usage}", "/ah notify <on/off>"));
+            return;
+        }
+
+        boolean enabled = args[1].equalsIgnoreCase("on");
+        playerSettingsService.setNotificationsEnabled(player, enabled);
+
+        if (enabled) {
+            player.sendMessage(configManager.getPrefixedMessage("info.notifications-on", "Auction notifications have been enabled."));
+        } else {
+            player.sendMessage(configManager.getPrefixedMessage("info.notifications-off", "Auction notifications have been disabled."));
+        }
+    }
+
+    private void handleHistory(Player player, String[] args) {
+        if (!player.hasPermission("kartaauctionhouse.history")) {
+            player.sendMessage(configManager.getPrefixedMessage("errors.no-permission"));
+            return;
+        }
+
+        if (args.length > 1) {
+            if (!player.hasPermission("kartaauctionhouse.history.others")) {
+                player.sendMessage(configManager.getPrefixedMessage("errors.no-permission"));
+                return;
+            }
+            org.bukkit.OfflinePlayer targetPlayer = org.bukkit.Bukkit.getOfflinePlayer(args[1]);
+            if (!targetPlayer.hasPlayedBefore() && targetPlayer.getUniqueId() == null) {
+                player.sendMessage(configManager.getPrefixedMessage("errors.player-not-found", "{player}", args[1]));
+                return;
+            }
+            new HistoryGui(plugin, player, targetPlayer.getUniqueId(), 1).open();
+        } else {
+            new HistoryGui(plugin, player, player.getUniqueId(), 1).open();
+        }
     }
 }

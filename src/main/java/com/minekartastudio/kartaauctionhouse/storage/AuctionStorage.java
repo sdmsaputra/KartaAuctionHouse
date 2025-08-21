@@ -2,6 +2,8 @@ package com.minekartastudio.kartaauctionhouse.storage;
 
 import com.minekartastudio.kartaauctionhouse.auction.model.Auction;
 import com.minekartastudio.kartaauctionhouse.auction.model.Bid;
+import com.minekartastudio.kartaauctionhouse.gui.model.AuctionCategory;
+import com.minekartastudio.kartaauctionhouse.gui.model.SortOrder;
 
 import java.util.List;
 import java.util.Optional;
@@ -20,14 +22,20 @@ public interface AuctionStorage {
     CompletableFuture<Optional<Auction>> findById(UUID id);
 
     /**
-     * Finds a list of active auctions, for pagination.
+    /**
+     * Finds a list of active auctions with filtering and sorting.
      */
-    CompletableFuture<List<Auction>> findActive(int limit, int offset);
+    CompletableFuture<List<Auction>> findActive(int limit, int offset, AuctionCategory category, SortOrder sortOrder, String searchQuery);
 
     /**
      * Finds auctions listed by a specific seller.
      */
     CompletableFuture<List<Auction>> findBySeller(UUID seller, int limit, int offset);
+
+    /**
+     * Counts the number of active auctions for a specific seller.
+     */
+    CompletableFuture<Integer> countActiveBySeller(UUID sellerId);
 
     /**
      * Inserts a new auction into the storage.

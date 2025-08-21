@@ -4,7 +4,18 @@
 
 prefix: "&7[&6KAH&7] "
 
+auction:
+  outbid: "&cYou have been outbid by %player% on %item%!"
+  win: "&aCongratulations! You won %item% for %price%."
+  sold: "&aYour auctioned item %item% has been sold for %price%."
+  expired: "&eYour auction for %item% has expired."
+  search_no_results: "&cNo items found matching '%keyword%'."
+
 errors:
+  no-permission: "&cYou do not have permission to use this command."
+  usage-search: "&cUsage: {usage}"
+  usage-notify: "&cUsage: {usage}"
+  invalid-category: "&cInvalid category: {category}"
   not-a-number: "&cPlease enter a valid number."
   no-item-in-hand: "&cYou must hold an item to sell."
   price-too-low: "&cPrice must be at least &e{min}&c."
@@ -15,6 +26,7 @@ errors:
   buy-now-fail: "&cCould not process purchase. Please try again."
   economy-fail: "&cEconomy operation failed. Please contact an administrator."
   inventory-full: "&cYour inventory is full. Please make space and try again."
+  player-not-found: "&cPlayer not found: {player}"
   listing-limit-reached: "&cYou have reached the maximum number of active listings ({limit})."
   no-bids-to-cancel: "&cYou can only cancel auctions that have no bids."
   not-your-auction: "&cYou can only modify your own auctions."
@@ -22,10 +34,13 @@ errors:
   reload-success: "&aSuccessfully reloaded configs."
 
 info:
+  enter-search-query: "&aPlease type your search query in chat. Type 'cancel' to exit."
   listed: "&aYou listed &e{item}&a for &e{price}&a. It will expire in &e{duration}&a."
   bid-placed: "&aYou successfully bid &e{amount}&a on &e{item}&a."
   outbid: "&eYou have been outbid on &e{item}&e! Your money has been returned to your mailbox."
   you-are-highest: "&aYou are now the highest bidder on &e{item}&a with &e{amount}&a."
+  notifications-on: "&aAuction notifications have been enabled."
+  notifications-off: "&aAuction notifications have been disabled."
   bought: "&aYou successfully purchased &e{item}&a for &e{amount}&a! Find it in your /ah mailbox."
   sold: "&aYour auction for &e{item}&a sold for &e{amount}&a (after tax)! The money is in your /ah mailbox."
   expired-returned: "&eYour auction for &e{item}&e has expired. The item has been returned to your /ah mailbox."

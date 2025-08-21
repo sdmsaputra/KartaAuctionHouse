@@ -75,7 +75,7 @@ public class MailboxGui extends PaginatedGui {
         if (handlePaginationClick(event)) return;
 
         if (event.getSlot() == 49) { // Back button
-            new MainAuctionGui(kah, player, 1).open();
+            new MainAuctionGui(kah, player, 1, com.minekartastudio.kartaauctionhouse.gui.model.AuctionCategory.ALL, com.minekartastudio.kartaauctionhouse.gui.model.SortOrder.NEWEST, null).open();
             return;
         }
 
