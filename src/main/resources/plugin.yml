@@ -1,0 +1,31 @@
+name: KartaAuctionHouse
+version: 1.0.0
+main: com.minekartastudio.kartaauctionhouse.KartaAuctionHouse
+author: MinekartaStudio
+api-version: 1.21
+depend: [Vault]
+softdepend: [PlaceholderAPI, KartaEmeraldCurrency]
+commands:
+  ah:
+    description: Main command for KartaAuctionHouse
+    usage: /ah
+    aliases: [auctionhouse, auction]
+permissions:
+  kartaauctionshouse.use:
+    description: Access to /ah and basic auction commands
+    default: true
+  kartaauctionshouse.sell:
+    description: Ability to list items
+    default: true
+  kartaauctionshouse.bid:
+    description: Ability to bid on items
+    default: true
+  kartaauctionshouse.buy:
+    description: Ability to buy items
+    default: true
+  kartaauctionshouse.admin:
+    description: Access to admin commands
+    default: op
+  kartaauctionshouse.reload:
+    description: Reload config
+    default: op
