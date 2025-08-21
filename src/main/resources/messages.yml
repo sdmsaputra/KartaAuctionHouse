@@ -1,0 +1,52 @@
+# KartaAuctionHouse Messages
+# Placeholders: {placeholder}
+# Color Codes: &a, &b, &c, etc.
+
+prefix: "&7[&6KAH&7] "
+
+errors:
+  not-a-number: "&cPlease enter a valid number."
+  no-item-in-hand: "&cYou must hold an item to sell."
+  price-too-low: "&cPrice must be at least &e{min}&c."
+  duration-out-of-range: "&cDuration must be between &e{min}&c and &e{max}&c."
+  auction-not-found: "&cAuction not found or has already ended."
+  cannot-bid-own: "&cYou cannot bid on your own auction."
+  bid-too-low: "&cYour bid must be at least &e{min_bid}&c."
+  buy-now-fail: "&cCould not process purchase. Please try again."
+  economy-fail: "&cEconomy operation failed. Please contact an administrator."
+  inventory-full: "&cYour inventory is full. Please make space and try again."
+  listing-limit-reached: "&cYou have reached the maximum number of active listings ({limit})."
+  no-bids-to-cancel: "&cYou can only cancel auctions that have no bids."
+  not-your-auction: "&cYou can only modify your own auctions."
+  reload-fail: "&cFailed to reload configs."
+  reload-success: "&aSuccessfully reloaded configs."
+
+info:
+  listed: "&aYou listed &e{item}&a for &e{price}&a. It will expire in &e{duration}&a."
+  bid-placed: "&aYou successfully bid &e{amount}&a on &e{item}&a."
+  outbid: "&eYou have been outbid on &e{item}&e! Your money has been returned to your mailbox."
+  you-are-highest: "&aYou are now the highest bidder on &e{item}&a with &e{amount}&a."
+  bought: "&aYou successfully purchased &e{item}&a for &e{amount}&a! Find it in your /ah mailbox."
+  sold: "&aYour auction for &e{item}&a sold for &e{amount}&a (after tax)! The money is in your /ah mailbox."
+  expired-returned: "&eYour auction for &e{item}&e has expired. The item has been returned to your /ah mailbox."
+  cancelled: "&aYou have cancelled your auction for &e{item}&a. The item has been returned to your /ah mailbox."
+
+mailbox:
+  received-money: "&aYou received &e{amount}&a. Reason: &7{note}"
+  received-item: "&aYou received &e{item}&a. Reason: &7{note}"
+  claimed-money: "&aYou claimed &e{amount}&a."
+  claimed-item: "&aYou claimed &e{item}&a."
+
+gui:
+  main-title: "&1KartaAuctionHouse"
+  my-listings-title: "&1My Listings"
+  mailbox-title: "&1My Mailbox"
+  # Lore for items in the main auction view
+  item-lore:
+    - "&7Seller: &e{seller}"
+    - "&7Starting Price: &e{price}"
+    - "&7Current Bid: &e{bid}"
+    - "&7Buy Now: &e{buy_now}"
+    - "&7Time Left: &e{time}"
+    - ""
+    - "&aClick to view!"

@@ -1,0 +1,70 @@
+# KartaAuctionHouse Configuration
+
+# --- Economy Settings ---
+economy:
+  # Preferred economy provider. Options: KARTAEMERALDCURRENCY, VAULT
+  # The plugin will try to use this provider first.
+  preferred: VAULT
+  # Fallback provider if the preferred one is not found.
+  fallback: VAULT
+  # Tax settings for sales.
+  tax:
+    enabled: true
+    # Percentage of the final sale price to be taken as tax.
+    percent: 5.0
+  # Listing fee settings.
+  listing-fee:
+    enabled: false
+    # A flat fee charged to the player when they list an item.
+    amount: 10.0
+  # Sink account for tax and listing fees.
+  sink:
+    # Where to deposit collected fees. Options: NONE, VAULT_ACCOUNT, KARTA_ACCOUNT
+    mode: NONE
+    # The name of the account to deposit into (e.g., a server bank name).
+    target: "server_treasury"
+
+# --- Auction Settings ---
+auction:
+  # Default values for auction listings.
+  defaults:
+    duration: "24h"
+  # Duration limits for auctions. Use 's' for seconds, 'm' for minutes, 'h' for hours, 'd' for days.
+  min-duration: "10m"
+  max-duration: "7d"
+  # Minimum price an item can be listed for.
+  min-price: 1.0
+  # The minimum percentage increase required for a new bid.
+  # e.g., 5.0 means a new bid must be at least 5% higher than the current one.
+  min-bid-increment-percent: 5.0
+  # Limits on player activity.
+  limits:
+    # The maximum number of auctions a single player can have active at one time.
+    max-active-listings-per-player: 10
+
+# --- Mailbox Settings ---
+mailbox:
+  enabled: true
+  # How long (in days) claimed items should be kept in the database before being purged.
+  # Note: This is for future implementation and is not enforced in this version.
+  retention-days: 30
+
+# --- GUI Settings ---
+gui:
+  # Title of the main auction house GUI.
+  title-main: "&6KartaAuctionHouse"
+  # Must be a multiple of 9.
+  size: 54
+  # Number of slots available for auction items (size - 9 for controls).
+  items-per-page: 45
+
+# --- Database Settings ---
+database:
+  type: MYSQL # Other types like YAML might be supported later.
+  host: "localhost"
+  port: 3306
+  database: "auctionhouse"
+  username: "user"
+  password: "password"
+  pool-size: 10
+  use-ssl: false
