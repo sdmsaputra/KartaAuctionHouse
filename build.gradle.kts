@@ -19,6 +19,9 @@ dependencies {
     compileOnly("com.github.MilkBowl:VaultAPI:1.7.1")
     compileOnly("me.clip:placeholderapi:2.11.5")
 
+    implementation("com.zaxxer:HikariCP:5.1.0")
+    implementation("mysql:mysql-connector-java:8.0.33")
+
     testImplementation("org.junit.jupiter:junit-jupiter:5.10.1")
 }
 
@@ -29,6 +32,9 @@ tasks {
 
     shadowJar {
         relocate("com.zaxxer.hikari", "com.minekartastudio.kartaauctionhouse.lib.hikaricp")
+        relocate("com.mysql", "com.minekartastudio.kartaauctionhouse.lib.mysql")
+        relocate("com.google.protobuf", "com.minekartastudio.kartaauctionhouse.lib.protobuf")
+        relocate("org.slf4j", "com.minekartastudio.kartaauctionhouse.lib.slf4j")
         archiveClassifier.set("")
     }
 
