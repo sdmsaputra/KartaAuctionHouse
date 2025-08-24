@@ -53,14 +53,16 @@ public class DatabaseManager {
                 return;
             }
 
-            String jdbcUrl = String.format("jdbc:mysql://%s:%d/%s?useSSL=%b",
+            String jdbcUrl = String.format("jdbc:mysql://%s:%d/%s",
                 dbConfig.getString("host", "localhost"),
                 dbConfig.getInt("port", 3306),
-                dbConfig.getString("database", "auctionhouse"),
-                dbConfig.getBoolean("use-ssl", false)
+                dbConfig.getString("database", "auctionhouse")
             );
 
             config.setJdbcUrl(jdbcUrl);
+            config.addDataSourceProperty("useSSL", dbConfig.getBoolean("use-ssl", false));
+            config.addDataSourceProperty("autoReconnect", "true");
+            config.addDataSourceProperty("allowPublicKeyRetrieval", "true");
             config.setUsername(dbConfig.getString("username"));
             config.setPassword(dbConfig.getString("password"));
             config.setMaximumPoolSize(dbConfig.getInt("pool-size", 10));
@@ -71,8 +73,16 @@ public class DatabaseManager {
             dataSource = new HikariDataSource(config);
             plugin.getLogger().info("Database connection pool successfully initialized.");
         } catch (Exception e) {
-            plugin.getLogger().severe("Could not initialize database connection pool! Check your config.yml.");
+            plugin.getLogger().severe("---------------------------------------------------");
+            plugin.getLogger().severe("KartaAuctionHouse - Database Connection Failed!");
+            plugin.getLogger().severe("Could not initialize the database connection pool.");
+            plugin.getLogger().severe("Please check the following in your config.yml:");
+            plugin.getLogger().severe("  - 'database.host' and 'database.port'");
+            plugin.getLogger().severe("  - 'database.database', 'database.username', 'database.password'");
+            plugin.getLogger().severe("Also, ensure that your firewall is not blocking the connection.");
+            plugin.getLogger().severe("Error details:");
             e.printStackTrace();
+            plugin.getLogger().severe("---------------------------------------------------");
         }
     }
 
