@@ -84,10 +84,14 @@ public class DatabaseManager {
     }
 
     public Connection getConnection() throws SQLException {
-        if (dataSource == null) {
+        if (!isDatabaseConnected()) {
             throw new SQLException("Database source is not available.");
         }
         return dataSource.getConnection();
+    }
+
+    public boolean isDatabaseConnected() {
+        return dataSource != null && !dataSource.isClosed();
     }
 
     public ExecutorService getExecutor() {
