@@ -65,34 +65,27 @@ public class VaultEconomyService implements EconomyService {
     }
 
     private <T> CompletableFuture<T> supplyOnMainThread(Supplier<T> supplier) {
-        // We must ensure that the supplier is not executed on the same thread that calls this method,
-        // if the caller is on the main thread, to prevent deadlocks with other plugins that might
-        // also be trying to do things on the main thread and waiting.
-        // By using supplyAsync with an async executor, we move the execution off the current thread.
-        // Then, inside the async task, we use callSyncMethod to ensure the Vault operation
-        // itself runs on the main thread, as required by Vault.
-        return CompletableFuture.supplyAsync(() -> {
+        CompletableFuture<T> future = new CompletableFuture<>();
+        Bukkit.getScheduler().runTask(plugin, () -> {
             try {
-                return Bukkit.getScheduler().callSyncMethod(plugin, supplier::get).get();
+                future.complete(supplier.get());
             } catch (Exception e) {
-                // Re-throw as an unchecked exception to be caught by the CompletableFuture
-                throw new RuntimeException(e);
+                future.completeExceptionally(e);
             }
-        }, runnable -> Bukkit.getScheduler().runTaskAsynchronously(plugin, runnable));
+        });
+        return future;
     }
 
     private CompletableFuture<Void> runOnMainThread(Runnable runnable) {
-        // See comment in supplyOnMainThread for the reasoning.
-        return CompletableFuture.runAsync(() -> {
+        CompletableFuture<Void> future = new CompletableFuture<>();
+        Bukkit.getScheduler().runTask(plugin, () -> {
             try {
-                Bukkit.getScheduler().callSyncMethod(plugin, () -> {
-                    runnable.run();
-                    return null; // callSyncMethod requires a callable
-                }).get();
+                runnable.run();
+                future.complete(null);
             } catch (Exception e) {
-                // Re-throw as an unchecked exception to be caught by the CompletableFuture
-                throw new RuntimeException(e);
+                future.completeExceptionally(e);
             }
-        }, runnable1 -> Bukkit.getScheduler().runTaskAsynchronously(plugin, runnable1));
+        });
+        return future;
     }
 }
