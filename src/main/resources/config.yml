@@ -41,7 +41,8 @@ gui:
 
 # --- Database Settings ---
 database:
-  type: MYSQL # Other types like YAML might be supported later.
+  # Storage type. Options: YAML, MYSQL
+  type: YAML
   host: "localhost"
   port: 3306
   database: "auctionhouse"
