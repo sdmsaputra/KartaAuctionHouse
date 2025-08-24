@@ -56,6 +56,11 @@ public class KartaAuctionHouse extends JavaPlugin {
 
         // 3. Initialize Database
         databaseManager = new DatabaseManager(this, configManager);
+        if (!databaseManager.isDatabaseConnected()) {
+            getLogger().severe("Disabling KartaAuctionHouse due to database connection failure.");
+            getServer().getPluginManager().disablePlugin(this);
+            return;
+        }
         AuctionStorage auctionStorage = new MySqlAuctionStorage(this, databaseManager);
         MailboxStorage mailboxStorage = new MySqlMailboxStorage(this, databaseManager);
         TransactionStorage transactionStorage = new MySqlTransactionStorage(this, databaseManager);
