@@ -23,6 +23,7 @@ dependencies {
     implementation("mysql:mysql-connector-java:8.0.33")
     // Add NOP logger to silence SLF4J warning from HikariCP
     implementation("org.slf4j:slf4j-nop:2.0.13")
+    implementation("org.yaml:snakeyaml:2.2")
 
     testImplementation("org.junit.jupiter:junit-jupiter:5.10.1")
 }
@@ -37,6 +38,7 @@ tasks {
         relocate("com.mysql", "com.minekartastudio.kartaauctionhouse.lib.mysql")
         relocate("com.google.protobuf", "com.minekartastudio.kartaauctionhouse.lib.protobuf")
         relocate("org.slf4j", "com.minekartastudio.kartaauctionhouse.lib.slf4j")
+        relocate("org.yaml", "com.minekartastudio.kartaauctionhouse.lib.yaml")
         archiveClassifier.set("")
     }
 

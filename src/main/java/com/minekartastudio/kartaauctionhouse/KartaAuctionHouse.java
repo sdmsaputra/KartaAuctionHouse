@@ -7,10 +7,8 @@ import com.minekartastudio.kartaauctionhouse.economy.EconomyRouter;
 import com.minekartastudio.kartaauctionhouse.mailbox.MailboxService;
 import com.minekartastudio.kartaauctionhouse.storage.AuctionStorage;
 import com.minekartastudio.kartaauctionhouse.storage.MailboxStorage;
+import com.minekartastudio.kartaauctionhouse.storage.StorageFactory;
 import com.minekartastudio.kartaauctionhouse.storage.sql.DatabaseManager;
-import com.minekartastudio.kartaauctionhouse.storage.sql.MySqlAuctionStorage;
-import com.minekartastudio.kartaauctionhouse.storage.sql.MySqlMailboxStorage;
-import com.minekartastudio.kartaauctionhouse.storage.sql.MySqlTransactionStorage;
 import com.minekartastudio.kartaauctionhouse.tasks.AuctionExpirer;
 import com.minekartastudio.kartaauctionhouse.util.PlayerNameCache;
 import com.minekartastudio.kartaauctionhouse.notification.NotificationManager;
@@ -55,15 +53,19 @@ public class KartaAuctionHouse extends JavaPlugin {
         );
 
         // 3. Initialize Database
-        databaseManager = new DatabaseManager(this, configManager);
-        if (!databaseManager.isDatabaseConnected()) {
-            getLogger().severe("Disabling KartaAuctionHouse due to database connection failure.");
-            getServer().getPluginManager().disablePlugin(this);
-            return;
+        String storageType = configManager.getConfig().getString("database.type", "YAML").toUpperCase();
+        if (storageType.equals("MYSQL")) {
+            databaseManager = new DatabaseManager(this, configManager);
+            if (!databaseManager.isDatabaseConnected()) {
+                getLogger().severe("Disabling KartaAuctionHouse due to database connection failure.");
+                getServer().getPluginManager().disablePlugin(this);
+                return;
+            }
         }
-        AuctionStorage auctionStorage = new MySqlAuctionStorage(this, databaseManager);
-        MailboxStorage mailboxStorage = new MySqlMailboxStorage(this, databaseManager);
-        TransactionStorage transactionStorage = new MySqlTransactionStorage(this, databaseManager);
+
+        AuctionStorage auctionStorage = StorageFactory.createAuctionStorage(this, configManager, databaseManager);
+        MailboxStorage mailboxStorage = StorageFactory.createMailboxStorage(this, configManager, databaseManager);
+        TransactionStorage transactionStorage = StorageFactory.createTransactionStorage(this, configManager, databaseManager);
 
         // Run table creation async
         asyncExecutor.submit(() -> {

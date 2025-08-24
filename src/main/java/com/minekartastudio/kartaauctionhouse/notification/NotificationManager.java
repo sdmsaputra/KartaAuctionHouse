@@ -63,11 +63,7 @@ public class NotificationManager {
                     String soundName = configManager.getConfig().getString("auction.notification-sound", "BLOCK_NOTE_BLOCK_PLING");
                     float volume = (float) configManager.getConfig().getDouble("auction.notification-sound-volume", 1.0);
                     float pitch = (float) configManager.getConfig().getDouble("auction.notification-sound-pitch", 1.0);
-                    try {
-                        player.playSound(player.getLocation(), Sound.valueOf(soundName.toUpperCase()), volume, pitch);
-                    } catch (IllegalArgumentException e) {
-                        plugin.getLogger().warning("Invalid sound name in config.yml: " + soundName);
-                    }
+                    player.playSound(player.getLocation(), soundName, volume, pitch);
                     break;
             }
         }
