@@ -21,6 +21,8 @@ dependencies {
 
     implementation("com.zaxxer:HikariCP:5.1.0")
     implementation("mysql:mysql-connector-java:8.0.33")
+    // Add NOP logger to silence SLF4J warning from HikariCP
+    implementation("org.slf4j:slf4j-nop:2.0.13")
 
     testImplementation("org.junit.jupiter:junit-jupiter:5.10.1")
 }
