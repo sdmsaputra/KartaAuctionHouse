@@ -27,8 +27,7 @@ public class VaultEconomyService implements EconomyService {
 
     @Override
     public CompletableFuture<Boolean> has(UUID playerId, double amount) {
-        // Vault operations should be on the main thread
-        return supplyOnMainThread(() -> {
+        return supplyAsynchronously(() -> {
             OfflinePlayer player = Bukkit.getOfflinePlayer(playerId);
             return vault.has(player, amount);
         });
@@ -36,7 +35,7 @@ public class VaultEconomyService implements EconomyService {
 
     @Override
     public CompletableFuture<Boolean> withdraw(UUID playerId, double amount, String reason) {
-        return supplyOnMainThread(() -> {
+        return supplyAsynchronously(() -> {
             OfflinePlayer player = Bukkit.getOfflinePlayer(playerId);
             EconomyResponse response = vault.withdrawPlayer(player, amount);
             return response.transactionSuccess();
@@ -45,7 +44,7 @@ public class VaultEconomyService implements EconomyService {
 
     @Override
     public CompletableFuture<Void> deposit(UUID playerId, double amount, String reason) {
-        return runOnMainThread(() -> {
+        return runAsynchronously(() -> {
             OfflinePlayer player = Bukkit.getOfflinePlayer(playerId);
             vault.depositPlayer(player, amount);
         });
@@ -58,15 +57,15 @@ public class VaultEconomyService implements EconomyService {
 
     @Override
     public CompletableFuture<Double> getBalance(UUID playerId) {
-        return supplyOnMainThread(() -> {
+        return supplyAsynchronously(() -> {
             OfflinePlayer player = Bukkit.getOfflinePlayer(playerId);
             return vault.getBalance(player);
         });
     }
 
-    private <T> CompletableFuture<T> supplyOnMainThread(Supplier<T> supplier) {
+    private <T> CompletableFuture<T> supplyAsynchronously(Supplier<T> supplier) {
         CompletableFuture<T> future = new CompletableFuture<>();
-        Bukkit.getScheduler().runTask(plugin, () -> {
+        Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
             try {
                 future.complete(supplier.get());
             } catch (Exception e) {
@@ -76,9 +75,9 @@ public class VaultEconomyService implements EconomyService {
         return future;
     }
 
-    private CompletableFuture<Void> runOnMainThread(Runnable runnable) {
+    private CompletableFuture<Void> runAsynchronously(Runnable runnable) {
         CompletableFuture<Void> future = new CompletableFuture<>();
-        Bukkit.getScheduler().runTask(plugin, () -> {
+        Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
             try {
                 runnable.run();
                 future.complete(null);
