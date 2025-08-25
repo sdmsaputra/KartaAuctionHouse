@@ -28,19 +28,9 @@ public class MailboxGui extends PaginatedGui {
 
     @Override
     protected void build() {
-        // Add border/filler items
-        ItemStack filler = new GuiItemBuilder(Material.GRAY_STAINED_GLASS_PANE).setName(" ").build();
-        for (int i = 45; i < 54; i++) {
-            inventory.setItem(i, filler);
-        }
-
-        // Add back button
-        inventory.setItem(49, new GuiItemBuilder(Material.ARROW).setName("&a<- Back").build());
-
-        // Fetch mailbox entries
         kah.getMailboxService().getUnclaimed(player.getUniqueId())
             .thenAcceptAsync(unclaimedEntries -> {
-                // Manual pagination
+                // Manual pagination for this example since MailboxService returns the full list
                 int start = (page - 1) * itemsPerPage;
                 int end = Math.min(start + itemsPerPage, unclaimedEntries.size());
 
@@ -52,8 +42,11 @@ public class MailboxGui extends PaginatedGui {
                     inventory.setItem(i, createMailboxItem(entry));
                 }
 
-                addPaginationControls();
-            }, runnable -> plugin.getServer().getScheduler().runTask(plugin, runnable));
+                plugin.getServer().getScheduler().runTask(plugin, () -> {
+                    addControlBar();
+                    inventory.setItem(46, new GuiItemBuilder(Material.ARROW).setName("&aBack to AH").build());
+                });
+            }, kah.getAsyncExecutor());
     }
 
     private ItemStack createMailboxItem(MailboxEntry entry) {
@@ -72,10 +65,10 @@ public class MailboxGui extends PaginatedGui {
 
     @Override
     protected void onClick(InventoryClickEvent event) {
-        if (handlePaginationClick(event)) return;
+        if (handleControlBarClick(event)) return;
 
-        if (event.getSlot() == 49) { // Back button
-            new MainAuctionGui(kah, player, 1, com.minekartastudio.kartaauctionhouse.gui.model.AuctionCategory.ALL, com.minekartastudio.kartaauctionhouse.gui.model.SortOrder.NEWEST, null).open();
+        if (event.getSlot() == 46) { // Back button
+            new MainAuctionGui(kah, player, 1, com.minekartastudio.kartaauctionhouse.gui.model.SortOrder.NEWEST, null).open();
             return;
         }
 

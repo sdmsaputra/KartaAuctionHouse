@@ -45,6 +45,24 @@ public class GuiItemBuilder {
         return this;
     }
 
+    public GuiItemBuilder addLore(String line) {
+        List<String> lore = itemMeta.getLore();
+        if (lore == null) {
+            lore = new java.util.ArrayList<>();
+        }
+        lore.add(ChatColor.translateAlternateColorCodes('&', line));
+        itemMeta.setLore(lore);
+        return this;
+    }
+
+    public GuiItemBuilder setSkullOwner(String ownerName) {
+        if (itemStack.getType() == Material.PLAYER_HEAD && itemMeta instanceof org.bukkit.inventory.meta.SkullMeta) {
+            org.bukkit.inventory.meta.SkullMeta skullMeta = (org.bukkit.inventory.meta.SkullMeta) itemMeta;
+            skullMeta.setOwningPlayer(org.bukkit.Bukkit.getOfflinePlayer(ownerName));
+        }
+        return this;
+    }
+
     public ItemStack build() {
         itemStack.setItemMeta(itemMeta);
         return itemStack;

@@ -19,14 +19,12 @@ public class MainAuctionGui extends PaginatedGui {
 
     private final KartaAuctionHouse kah;
     private List<Auction> auctions;
-    private final AuctionCategory category;
     private final SortOrder sortOrder;
     private final String searchQuery;
 
-    public MainAuctionGui(KartaAuctionHouse plugin, Player player, int page, AuctionCategory category, SortOrder sortOrder, String searchQuery) {
+    public MainAuctionGui(KartaAuctionHouse plugin, Player player, int page, SortOrder sortOrder, String searchQuery) {
         super(plugin, player, page, 45);
         this.kah = plugin;
-        this.category = category;
         this.sortOrder = sortOrder;
         this.searchQuery = searchQuery;
     }
@@ -38,46 +36,37 @@ public class MainAuctionGui extends PaginatedGui {
 
     @Override
     protected void build() {
-        // Add border/filler items
-        ItemStack filler = new GuiItemBuilder(Material.GRAY_STAINED_GLASS_PANE).setName(" ").build();
-        for (int i = 45; i < 54; i++) {
-            inventory.setItem(i, filler);
-        }
-
-        // Add control buttons
-        addControlItems();
-
-        // Fetch auctions and build page
-        kah.getAuctionService().getActiveAuctions(page, itemsPerPage, category, sortOrder, searchQuery)
+        // Fetch auctions and build page content first
+        kah.getAuctionService().getActiveAuctions(page, itemsPerPage, AuctionCategory.ALL, sortOrder, searchQuery)
             .thenCombine(kah.getEconomyRouter().getService().getBalance(player.getUniqueId()), (fetchedAuctions, balance) -> {
+                // Determine pagination
                 this.hasNextPage = fetchedAuctions.size() > itemsPerPage;
                 this.auctions = hasNextPage ? fetchedAuctions.subList(0, itemsPerPage) : fetchedAuctions;
 
+                // Populate auction items
                 for (int i = 0; i < auctions.size(); i++) {
                     Auction auction = auctions.get(i);
                     ItemStack displayItem = createAuctionItem(auction, balance);
                     inventory.setItem(i, displayItem);
                 }
                 return null;
-            }).thenRunAsync(() -> addPaginationControls(), runnable -> plugin.getServer().getScheduler().runTask(plugin, runnable)); // Run on main thread
+            }).thenRunAsync(() -> {
+                // Build the static parts of the GUI on the main thread
+                addControlBar(); // From PaginatedGui
+                addCustomControls(); // Add our specific controls
+            }, runnable -> plugin.getServer().getScheduler().runTask(plugin, runnable));
     }
 
-    private void addControlItems() {
-        // Category Tabs
-        inventory.setItem(45, new GuiItemBuilder(Material.DIAMOND_SWORD).setName("&aWeapons").setLore(category == AuctionCategory.WEAPONS ? "&7(Selected)" : "").build());
-        inventory.setItem(46, new GuiItemBuilder(Material.DIAMOND_CHESTPLATE).setName("&aArmor").setLore(category == AuctionCategory.ARMOR ? "&7(Selected)" : "").build());
-        inventory.setItem(47, new GuiItemBuilder(Material.GRASS_BLOCK).setName("&aBlocks").setLore(category == AuctionCategory.BLOCKS ? "&7(Selected)" : "").build());
-        inventory.setItem(48, new GuiItemBuilder(Material.ELYTRA).setName("&aMisc").setLore(category == AuctionCategory.MISC ? "&7(Selected)" : "").build());
-
+    private void addCustomControls() {
         // Sorting Button
-        inventory.setItem(50, new GuiItemBuilder(Material.HOPPER).setName("&aSort By: &e" + sortOrder.getDisplayName()).setLore("&7Click to cycle").build());
+        inventory.setItem(47, new GuiItemBuilder(Material.HOPPER).setName("&aSort By: &e" + sortOrder.getDisplayName()).setLore("&7Click to cycle").build());
 
         // Search Button
-        inventory.setItem(51, new GuiItemBuilder(Material.OAK_SIGN).setName("&aSearch").setLore(searchQuery != null ? "&7Current: &e" + searchQuery : "&7Click to search").build());
+        inventory.setItem(50, new GuiItemBuilder(Material.OAK_SIGN).setName("&aSearch").setLore(searchQuery != null ? "&7Current: &e" + searchQuery : "&7Click to search").build());
 
         // My Auctions & Mailbox
-        inventory.setItem(52, new GuiItemBuilder(Material.CHEST).setName("&aMy Listings").build());
-        inventory.setItem(53, new GuiItemBuilder(Material.WRITABLE_BOOK).setName("&aMailbox").build());
+        inventory.setItem(51, new GuiItemBuilder(Material.CHEST).setName("&aMy Listings").build());
+        inventory.setItem(52, new GuiItemBuilder(Material.WRITABLE_BOOK).setName("&aMailbox").build());
     }
 
     private ItemStack createAuctionItem(Auction auction, double playerBalance) {
@@ -109,10 +98,12 @@ public class MainAuctionGui extends PaginatedGui {
 
     @Override
     protected void onClick(InventoryClickEvent event) {
-        if (handlePaginationClick(event)) return;
+        // Handle pagination, close, and player info clicks from the parent
+        if (handleControlBarClick(event)) return;
 
         int slot = event.getSlot();
 
+        // Handle clicking on an auction item
         if (slot >= 0 && slot < itemsPerPage && auctions != null && slot < auctions.size()) {
             Auction clickedAuction = auctions.get(slot);
             // TODO: Open a detailed GUI for this auction
@@ -120,27 +111,24 @@ public class MainAuctionGui extends PaginatedGui {
             return;
         }
 
+        // Handle custom control clicks
         switch (slot) {
-            case 45: new MainAuctionGui(kah, player, 1, AuctionCategory.WEAPONS, sortOrder, searchQuery).open(); break;
-            case 46: new MainAuctionGui(kah, player, 1, AuctionCategory.ARMOR, sortOrder, searchQuery).open(); break;
-            case 47: new MainAuctionGui(kah, player, 1, AuctionCategory.BLOCKS, sortOrder, searchQuery).open(); break;
-            case 48: new MainAuctionGui(kah, player, 1, AuctionCategory.MISC, sortOrder, searchQuery).open(); break;
-            case 50: // Sort
+            case 47: // Sort
                 SortOrder nextSortOrder = sortOrder.next();
-                new MainAuctionGui(kah, player, 1, category, nextSortOrder, searchQuery).open();
+                new MainAuctionGui(kah, player, 1, nextSortOrder, searchQuery).open();
                 break;
-            case 51: // Search
+            case 50: // Search
                 player.closeInventory();
                 kah.getSearchInputListener().addPlayerToSearchMode(player.getUniqueId());
                 player.sendMessage(kah.getConfigManager().getPrefixedMessage("info.enter-search-query", "Please type your search query in chat. Type 'cancel' to exit."));
                 break;
-            case 52: new MyListingsGui(kah, player, 1).open(); break;
-            case 53: new MailboxGui(kah, player, 1).open(); break;
+            case 51: new MyListingsGui(kah, player, 1).open(); break;
+            case 52: new MailboxGui(kah, player, 1).open(); break;
         }
     }
 
     @Override
     protected void openPage(int newPage) {
-        new MainAuctionGui(kah, player, newPage, category, sortOrder, searchQuery).open();
+        new MainAuctionGui(kah, player, newPage, sortOrder, searchQuery).open();
     }
 }

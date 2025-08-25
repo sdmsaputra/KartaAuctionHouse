@@ -7,7 +7,6 @@ import com.minekartastudio.kartaauctionhouse.gui.HistoryGui;
 import com.minekartastudio.kartaauctionhouse.gui.MainAuctionGui;
 import com.minekartastudio.kartaauctionhouse.gui.MailboxGui;
 import com.minekartastudio.kartaauctionhouse.gui.MyListingsGui;
-import com.minekartastudio.kartaauctionhouse.gui.model.AuctionCategory;
 import com.minekartastudio.kartaauctionhouse.gui.model.SortOrder;
 import com.minekartastudio.kartaauctionhouse.mailbox.MailboxService;
 import com.minekartastudio.kartaauctionhouse.util.DurationParser;
@@ -42,7 +41,7 @@ public class AuctionCommand implements CommandExecutor {
         }
 
         if (args.length == 0) {
-            new MainAuctionGui(plugin, player, 1, AuctionCategory.ALL, SortOrder.NEWEST, null).open();
+            new MainAuctionGui(plugin, player, 1, SortOrder.NEWEST, null).open();
             return true;
         }
 
@@ -53,10 +52,9 @@ public class AuctionCommand implements CommandExecutor {
             case "listings", "myauctions" -> new MyListingsGui(plugin, player, 1).open();
             case "reload" -> handleReload(player);
             case "search" -> handleSearch(player, args);
-            case "category", "categories" -> handleCategory(player, args);
             case "notify" -> handleNotify(player, args);
             case "history" -> handleHistory(player, args);
-            default -> new MainAuctionGui(plugin, player, 1, AuctionCategory.ALL, SortOrder.NEWEST, null).open();
+            default -> new MainAuctionGui(plugin, player, 1, SortOrder.NEWEST, null).open();
         }
 
         return true;
@@ -143,26 +141,7 @@ public class AuctionCommand implements CommandExecutor {
         }
 
         String searchQuery = String.join(" ", java.util.Arrays.copyOfRange(args, 1, args.length));
-        new MainAuctionGui(plugin, player, 1, AuctionCategory.ALL, SortOrder.NEWEST, searchQuery).open();
-    }
-
-    private void handleCategory(Player player, String[] args) {
-        if (!player.hasPermission("kartaauctionhouse.categories")) {
-            player.sendMessage(configManager.getPrefixedMessage("errors.no-permission"));
-            return;
-        }
-
-        AuctionCategory category = AuctionCategory.ALL;
-        if (args.length > 1) {
-            try {
-                category = AuctionCategory.valueOf(args[1].toUpperCase());
-            } catch (IllegalArgumentException e) {
-                player.sendMessage(configManager.getPrefixedMessage("errors.invalid-category", "{category}", args[1]));
-                return;
-            }
-        }
-
-        new MainAuctionGui(plugin, player, 1, category, SortOrder.NEWEST, null).open();
+        new MainAuctionGui(plugin, player, 1, SortOrder.NEWEST, searchQuery).open();
     }
 
     private void handleNotify(Player player, String[] args) {
