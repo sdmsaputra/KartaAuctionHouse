@@ -1,6 +1,8 @@
 package com.minekartastudio.kartaauctionhouse.gui;
 
+import com.minekartastudio.kartaauctionhouse.KartaAuctionHouse;
 import org.bukkit.Bukkit;
+import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.HandlerList;
@@ -9,8 +11,11 @@ import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryCloseEvent;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.InventoryHolder;
+import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.jetbrains.annotations.NotNull;
+
+import java.util.concurrent.CompletableFuture;
 
 public abstract class Gui implements InventoryHolder, Listener {
 
@@ -59,5 +64,31 @@ public abstract class Gui implements InventoryHolder, Listener {
         if (event.getInventory().getHolder() == this) {
             HandlerList.unregisterAll(this);
         }
+    }
+
+    protected CompletableFuture<ItemStack> createPlayerInfoItem() {
+        if (!(plugin instanceof KartaAuctionHouse kah)) {
+            // Fallback for safety, though it should always be a KartaAuctionHouse instance
+            return CompletableFuture.completedFuture(
+                new GuiItemBuilder(Material.PLAYER_HEAD)
+                    .setSkullOwner(player.getName())
+                    .setName("&e" + player.getName())
+                    .build()
+            );
+        }
+
+        return kah.getEconomyRouter().getService().getBalance(player.getUniqueId()).thenApply(balance -> {
+            String formattedBalance = kah.getEconomyRouter().getService().format(balance);
+            GuiItemBuilder builder = new GuiItemBuilder(Material.PLAYER_HEAD)
+                .setSkullOwner(player.getName())
+                .setName("&a" + player.getName())
+                .setLore("&7Balance: &e" + formattedBalance);
+
+            if (this instanceof PaginatedGui paginatedGui) {
+                builder.addLore("&7Page: &e" + paginatedGui.page);
+            }
+
+            return builder.build();
+        });
     }
 }

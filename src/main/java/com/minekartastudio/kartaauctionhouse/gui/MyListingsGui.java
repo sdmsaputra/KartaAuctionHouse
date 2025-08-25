@@ -29,27 +29,15 @@ public class MyListingsGui extends PaginatedGui {
 
     @Override
     protected void build() {
-        // This is a placeholder as findBySeller is not fully implemented in storage yet.
-        // We'll proceed as if it is.
+        // TODO: This feature is not fully implemented in the backend.
+        // For now, we'll just show an empty screen with controls.
         // kah.getAuctionService().getAuctionsBySeller(player.getUniqueId(), page, itemsPerPage + 1)
-        // For now, let's just show an empty screen with controls.
 
-        // Add border/filler items
-        ItemStack filler = new GuiItemBuilder(Material.GRAY_STAINED_GLASS_PANE).setName(" ").build();
-        for (int i = 45; i < 54; i++) {
-            inventory.setItem(i, filler);
-        }
-
-        // Add back button
-        inventory.setItem(49, new GuiItemBuilder(Material.ARROW).setName("&a<- Back").build());
-
-        // For now, let's assume we have auctions to display
-        // In a real scenario, this would be populated from the async call
-        this.auctions = new ArrayList<>(); // Empty for now
+        this.auctions = new ArrayList<>();
         this.hasNextPage = false;
 
-        // Add pagination controls
-        addPaginationControls();
+        addControlBar();
+        inventory.setItem(46, new GuiItemBuilder(Material.ARROW).setName("&aBack to AH").build());
     }
 
     private ItemStack createAuctionItem(Auction auction) {
@@ -81,10 +69,10 @@ public class MyListingsGui extends PaginatedGui {
 
     @Override
     protected void onClick(InventoryClickEvent event) {
-        if (handlePaginationClick(event)) return;
+        if (handleControlBarClick(event)) return;
 
-        if (event.getSlot() == 49) { // Back button
-            new MainAuctionGui(kah, player, 1, com.minekartastudio.kartaauctionhouse.gui.model.AuctionCategory.ALL, com.minekartastudio.kartaauctionhouse.gui.model.SortOrder.NEWEST, null).open();
+        if (event.getSlot() == 46) { // Back button
+            new MainAuctionGui(kah, player, 1, com.minekartastudio.kartaauctionhouse.gui.model.SortOrder.NEWEST, null).open();
             return;
         }
 

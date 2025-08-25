@@ -119,4 +119,5 @@ public class KartaAuctionHouse extends JavaPlugin {
     public TransactionLogger getTransactionLogger() { return transactionLogger; }
     public SearchInputListener getSearchInputListener() { return searchInputListener; }
     public PlayerSettingsService getPlayerSettingsService() { return playerSettingsService; }
+    public ExecutorService getAsyncExecutor() { return asyncExecutor; }
 }

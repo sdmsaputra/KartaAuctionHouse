@@ -1,7 +1,6 @@
 package com.minekartastudio.kartaauctionhouse.gui;
 
 import com.minekartastudio.kartaauctionhouse.KartaAuctionHouse;
-import com.minekartastudio.kartaauctionhouse.gui.model.AuctionCategory;
 import com.minekartastudio.kartaauctionhouse.gui.model.SortOrder;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -40,7 +39,7 @@ public class SearchInputListener implements Listener {
 
         // Re-open the GUI with the search query on the main thread
         plugin.getServer().getScheduler().runTask(plugin, () -> {
-            new MainAuctionGui(plugin, player, 1, AuctionCategory.ALL, SortOrder.NEWEST, searchQuery).open();
+            new MainAuctionGui(plugin, player, 1, SortOrder.NEWEST, searchQuery).open();
         });
     }
 }

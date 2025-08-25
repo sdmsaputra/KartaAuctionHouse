@@ -32,15 +32,6 @@ public class HistoryGui extends PaginatedGui {
 
     @Override
     protected void build() {
-        // Add border/filler items
-        ItemStack filler = new GuiItemBuilder(Material.GRAY_STAINED_GLASS_PANE).setName(" ").build();
-        for (int i = 45; i < 54; i++) {
-            inventory.setItem(i, filler);
-        }
-
-        // Back button
-        inventory.setItem(49, new GuiItemBuilder(Material.ARROW).setName("&aBack").build());
-
         // Fetch transactions and build page
         kah.getTransactionLogger().getHistory(targetPlayerId, page, itemsPerPage + 1)
             .thenAcceptAsync(fetchedTransactions -> {
@@ -53,8 +44,13 @@ public class HistoryGui extends PaginatedGui {
                     inventory.setItem(i, displayItem);
                 }
 
-                addPaginationControls();
-            }, runnable -> plugin.getServer().getScheduler().runTask(plugin, runnable));
+                // Run on main thread to build the static parts of the GUI
+                plugin.getServer().getScheduler().runTask(plugin, () -> {
+                    addControlBar();
+                    // Add a back button specific to this GUI
+                    inventory.setItem(46, new GuiItemBuilder(Material.ARROW).setName("&aBack to AH").build());
+                });
+            }, kah.getAsyncExecutor()); // Use the plugin's executor
     }
 
     private ItemStack createHistoryItem(Transaction transaction) {
@@ -86,10 +82,10 @@ public class HistoryGui extends PaginatedGui {
 
     @Override
     protected void onClick(InventoryClickEvent event) {
-        if (handlePaginationClick(event)) return;
+        if (handleControlBarClick(event)) return;
 
-        if (event.getSlot() == 49) {
-            new MainAuctionGui(kah, player, 1, com.minekartastudio.kartaauctionhouse.gui.model.AuctionCategory.ALL, com.minekartastudio.kartaauctionhouse.gui.model.SortOrder.NEWEST, null).open();
+        if (event.getSlot() == 46) { // Back button
+            new MainAuctionGui(kah, player, 1, com.minekartastudio.kartaauctionhouse.gui.model.SortOrder.NEWEST, null).open();
         }
     }
 
