@@ -3,10 +3,7 @@ package com.minekartastudio.kartaauctionhouse.commands;
 import com.minekartastudio.kartaauctionhouse.KartaAuctionHouse;
 import com.minekartastudio.kartaauctionhouse.auction.AuctionService;
 import com.minekartastudio.kartaauctionhouse.config.ConfigManager;
-import com.minekartastudio.kartaauctionhouse.gui.HistoryGui;
-import com.minekartastudio.kartaauctionhouse.gui.MainAuctionGui;
-import com.minekartastudio.kartaauctionhouse.gui.MailboxGui;
-import com.minekartastudio.kartaauctionhouse.gui.MyListingsGui;
+import com.minekartastudio.kartaauctionhouse.gui.improved.ImprovedMainGui;
 import com.minekartastudio.kartaauctionhouse.gui.model.SortOrder;
 import com.minekartastudio.kartaauctionhouse.mailbox.MailboxService;
 import com.minekartastudio.kartaauctionhouse.util.DurationParser;
@@ -41,20 +38,20 @@ public class AuctionCommand implements CommandExecutor {
         }
 
         if (args.length == 0) {
-            new MainAuctionGui(plugin, player, 1, SortOrder.NEWEST, null).open();
+            new ImprovedMainGui(plugin, player).open();
             return true;
         }
 
         String subCommand = args[0].toLowerCase();
         switch (subCommand) {
             case "sell" -> handleSell(player, args);
-            case "mailbox" -> new MailboxGui(plugin, player, 1).open();
-            case "listings", "myauctions" -> new MyListingsGui(plugin, player, 1).open();
+            case "mailbox" -> new ImprovedMainGui(plugin, player).open();
+            case "listings", "myauctions" -> new ImprovedMainGui(plugin, player).open();
             case "reload" -> handleReload(player);
             case "search" -> handleSearch(player, args);
             case "notify" -> handleNotify(player, args);
             case "history" -> handleHistory(player, args);
-            default -> new MainAuctionGui(plugin, player, 1, SortOrder.NEWEST, null).open();
+            default -> new ImprovedMainGui(plugin, player).open();
         }
 
         return true;
@@ -62,12 +59,12 @@ public class AuctionCommand implements CommandExecutor {
 
     private void handleSell(Player player, String[] args) {
         if (!player.hasPermission("kartaauctionhouse.sell")) {
-            player.sendMessage(configManager.getPrefixedMessage("errors.no-permission")); // Assumes no-permission message exists
+            player.sendMessage(configManager.getPrefixedMessage("errors.no-permission"));
             return;
         }
 
         if (args.length < 2) {
-            player.sendMessage(configManager.getPrefixedMessage("errors.usage-sell", "{usage}", "/ah sell <price> [buyNow] [duration]"));
+            player.sendMessage(configManager.getPrefixedMessage("errors.usage-sell", "{usage}", "/ah sell <price> [duration]"));
             return;
         }
 
@@ -90,12 +87,11 @@ public class AuctionCommand implements CommandExecutor {
              return;
         }
 
-        Double buyNow = args.length > 2 ? Double.parseDouble(args[2]) : null;
-        String durationStr = args.length > 3 ? args[3] : configManager.getConfig().getString("auction.defaults.duration", "24h");
+        String durationStr = args.length > 2 ? args[2] : configManager.getConfig().getString("auction.defaults.duration", "24h");
 
         long durationMillis = DurationParser.parse(durationStr).orElse(0L);
         if (durationMillis <= 0) {
-            player.sendMessage(configManager.getPrefixedMessage("errors.duration-out-of-range", "{min}", "1s", "{max}", "infinite")); // Placeholder
+            player.sendMessage(configManager.getPrefixedMessage("errors.duration-out-of-range", "{min}", "1s", "{max}", "infinite"));
             return;
         }
 
@@ -109,7 +105,7 @@ public class AuctionCommand implements CommandExecutor {
             ItemStack toSell = itemInHand.clone();
             player.getInventory().setItemInMainHand(null); // Remove item from hand
 
-            auctionService.createListing(player, toSell, price, buyNow, null, durationMillis).thenAccept(success -> {
+            auctionService.createListing(player, toSell, price, durationMillis).thenAccept(success -> {
                 if (success) {
                     player.sendMessage(configManager.getPrefixedMessage("info.listed", "{item}", toSell.getType().toString(), "{price}", String.valueOf(price)));
                 } else {
@@ -141,7 +137,9 @@ public class AuctionCommand implements CommandExecutor {
         }
 
         String searchQuery = String.join(" ", java.util.Arrays.copyOfRange(args, 1, args.length));
-        new MainAuctionGui(plugin, player, 1, SortOrder.NEWEST, searchQuery).open();
+        ImprovedMainGui searchGui = new ImprovedMainGui(plugin, player);
+        searchGui.setSearchQuery(searchQuery);
+        searchGui.open();
     }
 
     private void handleNotify(Player player, String[] args) {
@@ -171,19 +169,7 @@ public class AuctionCommand implements CommandExecutor {
             return;
         }
 
-        if (args.length > 1) {
-            if (!player.hasPermission("kartaauctionhouse.history.others")) {
-                player.sendMessage(configManager.getPrefixedMessage("errors.no-permission"));
-                return;
-            }
-            org.bukkit.OfflinePlayer targetPlayer = org.bukkit.Bukkit.getOfflinePlayer(args[1]);
-            if (!targetPlayer.hasPlayedBefore() && targetPlayer.getUniqueId() == null) {
-                player.sendMessage(configManager.getPrefixedMessage("errors.player-not-found", "{player}", args[1]));
-                return;
-            }
-            new HistoryGui(plugin, player, targetPlayer.getUniqueId(), 1).open();
-        } else {
-            new HistoryGui(plugin, player, player.getUniqueId(), 1).open();
-        }
+        // TODO: Implement HistoryGui with Inventory Framework
+        player.sendMessage(configManager.getPrefixedMessage("errors.feature-not-available", "&cHistory feature is coming soon!"));
     }
 }

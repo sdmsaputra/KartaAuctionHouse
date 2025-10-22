@@ -14,11 +14,7 @@ public class YamlUtil {
         map.put("id", auction.id().toString());
         map.put("seller", auction.seller().toString());
         map.put("item", auction.item().getBase64());
-        map.put("startingPrice", auction.startingPrice());
-        if (auction.currentBid() != null) map.put("currentBid", auction.currentBid());
-        if (auction.currentBidder() != null) map.put("currentBidder", auction.currentBidder().toString());
-        if (auction.buyNowPrice() != null) map.put("buyNowPrice", auction.buyNowPrice());
-        if (auction.reservePrice() != null) map.put("reservePrice", auction.reservePrice());
+        map.put("price", auction.price());
         map.put("createdAt", auction.createdAt());
         map.put("endAt", auction.endAt());
         map.put("status", auction.status().name());
@@ -31,11 +27,7 @@ public class YamlUtil {
                 UUID.fromString((String) map.get("id")),
                 UUID.fromString((String) map.get("seller")),
                 SerializedItem.fromBase64((String) map.get("item")),
-                (Double) map.get("startingPrice"),
-                (Double) map.get("currentBid"),
-                map.get("currentBidder") != null ? UUID.fromString((String) map.get("currentBidder")) : null,
-                (Double) map.get("buyNowPrice"),
-                (Double) map.get("reservePrice"),
+                (Double) map.get("price"),
                 ((Number) map.get("createdAt")).longValue(),
                 ((Number) map.get("endAt")).longValue(),
                 AuctionStatus.valueOf((String) map.get("status")),

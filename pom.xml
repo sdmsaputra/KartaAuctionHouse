@@ -74,6 +74,12 @@
             <scope>compile</scope>
         </dependency>
         <dependency>
+            <groupId>com.github.stefvanschie.inventoryframework</groupId>
+            <artifactId>IF</artifactId>
+            <version>0.11.5</version>
+            <scope>compile</scope>
+        </dependency>
+        <dependency>
             <groupId>org.junit.jupiter</groupId>
             <artifactId>junit-jupiter</artifactId>
             <version>5.10.1</version>
@@ -123,6 +129,10 @@
                                 <relocation>
                                     <pattern>org.yaml</pattern>
                                     <shadedPattern>com.minekartastudio.kartaauctionhouse.lib.yaml</shadedPattern>
+                                </relocation>
+                                <relocation>
+                                    <pattern>com.github.stefvanschie.inventoryframework</pattern>
+                                    <shadedPattern>com.minekartastudio.kartaauctionhouse.lib.if</shadedPattern>
                                 </relocation>
                             </relocations>
                         </configuration>

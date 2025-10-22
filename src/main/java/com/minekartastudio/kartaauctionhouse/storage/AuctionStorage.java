@@ -1,7 +1,6 @@
 package com.minekartastudio.kartaauctionhouse.storage;
 
 import com.minekartastudio.kartaauctionhouse.auction.model.Auction;
-import com.minekartastudio.kartaauctionhouse.auction.model.Bid;
 import com.minekartastudio.kartaauctionhouse.gui.model.AuctionCategory;
 import com.minekartastudio.kartaauctionhouse.gui.model.SortOrder;
 
@@ -49,11 +48,7 @@ public interface AuctionStorage {
      */
     CompletableFuture<Boolean> updateAuctionIfVersionMatches(Auction a, int expectedVersion);
 
-    /**
-     * Inserts a new bid record into the storage.
-     */
-    CompletableFuture<Void> insertBid(Bid b);
-
+    
     /**
      * Finds a batch of auctions that have expired as of a given timestamp.
      */

@@ -39,7 +39,12 @@ public class SearchInputListener implements Listener {
 
         // Re-open the GUI with the search query on the main thread
         plugin.getServer().getScheduler().runTask(plugin, () -> {
-            new MainAuctionGui(plugin, player, 1, SortOrder.NEWEST, searchQuery).open();
+            com.minekartastudio.kartaauctionhouse.gui.improved.ImprovedMainGui gui =
+                new com.minekartastudio.kartaauctionhouse.gui.improved.ImprovedMainGui(plugin, player);
+            if (!searchQuery.equalsIgnoreCase("cancel")) {
+                gui.setSearchQuery(searchQuery);
+            }
+            gui.open();
         });
     }
 }

@@ -58,4 +58,11 @@ public class ConfigManager {
         String message = getMessage(path, replacements);
         return ChatColor.translateAlternateColorCodes('&', prefix) + message;
     }
+
+    /**
+     * Process color codes in a string
+     */
+    public String processColors(String text) {
+        return ChatColor.translateAlternateColorCodes('&', text);
+    }
 }

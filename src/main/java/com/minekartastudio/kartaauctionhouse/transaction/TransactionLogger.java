@@ -16,7 +16,7 @@ public class TransactionLogger {
     }
 
     public CompletableFuture<Void> log(Auction auction, String status) {
-        return log(auction, status, auction.currentBidder(), auction.currentBid());
+        return log(auction, status, null, auction.price());
     }
 
     public CompletableFuture<Void> log(Auction auction, String status, UUID buyer, Double price) {

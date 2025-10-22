@@ -2,7 +2,6 @@ package com.minekartastudio.kartaauctionhouse.storage.yaml;
 
 import com.minekartastudio.kartaauctionhouse.auction.model.Auction;
 import com.minekartastudio.kartaauctionhouse.auction.model.AuctionStatus;
-import com.minekartastudio.kartaauctionhouse.auction.model.Bid;
 import com.minekartastudio.kartaauctionhouse.gui.model.AuctionCategory;
 import com.minekartastudio.kartaauctionhouse.gui.model.SortOrder;
 import com.minekartastudio.kartaauctionhouse.storage.AuctionStorage;
@@ -98,8 +97,8 @@ public class YamlAuctionStorage implements AuctionStorage {
 
                 // Sorting
                 Comparator<Auction> comparator = switch (sortOrder) {
-                    case PRICE_ASC -> Comparator.comparing((Auction a) -> a.currentBid() != null ? a.currentBid() : a.startingPrice());
-                    case PRICE_DESC -> Comparator.comparing((Auction a) -> a.currentBid() != null ? a.currentBid() : a.startingPrice()).reversed();
+                    case PRICE_ASC -> Comparator.comparing(Auction::price);
+                    case PRICE_DESC -> Comparator.comparing(Auction::price).reversed();
                     case NEWEST -> Comparator.comparing(Auction::createdAt).reversed();
                     default -> Comparator.comparing(Auction::endAt); // TIME_LEFT
                 };
@@ -178,13 +177,7 @@ public class YamlAuctionStorage implements AuctionStorage {
         });
     }
 
-    @Override
-    public CompletableFuture<Void> insertBid(Bid b) {
-        // Bids are part of the Auction object in YAML storage, so this is a no-op.
-        // The auction is updated via updateAuctionIfVersionMatches.
-        return CompletableFuture.completedFuture(null);
-    }
-
+    
     @Override
     public CompletableFuture<List<Auction>> findExpiredUpTo(long nowEpochMillis, int batchSize) {
         return CompletableFuture.supplyAsync(() -> {
