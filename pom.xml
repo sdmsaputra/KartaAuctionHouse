@@ -85,6 +85,12 @@
             <version>5.10.1</version>
             <scope>test</scope>
         </dependency>
+        <dependency>
+            <groupId>com.github.stefvanschie.inventoryframework</groupId>
+            <artifactId>IF</artifactId>
+            <version>0.11.5</version>
+            <scope>compile</scope>
+        </dependency>
     </dependencies>
 
     <build>
@@ -129,6 +135,10 @@
                                 <relocation>
                                     <pattern>org.yaml</pattern>
                                     <shadedPattern>com.minekartastudio.kartaauctionhouse.lib.yaml</shadedPattern>
+                                </relocation>
+                                <relocation>
+                                    <pattern>com.github.stefvanschie.inventoryframework</pattern>
+                                    <shadedPattern>com.minekartastudio.kartaauctionhouse.lib.inventoryframework</shadedPattern>
                                 </relocation>
                                 <relocation>
                                     <pattern>com.github.stefvanschie.inventoryframework</pattern>

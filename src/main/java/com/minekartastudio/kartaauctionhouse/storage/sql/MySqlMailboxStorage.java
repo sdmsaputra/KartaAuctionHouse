@@ -34,6 +34,7 @@ public class MySqlMailboxStorage implements MailboxStorage {
 
     private static final String ENQUEUE_ENTRY = "INSERT INTO mailbox (entry_id, owner_uuid, type, item_base64, amount, note, created_at, claimed) VALUES (?, ?, ?, ?, ?, ?, ?, ?);";
     private static final String GET_UNCLAIMED = "SELECT * FROM mailbox WHERE owner_uuid = ? AND claimed = 0 ORDER BY created_at ASC;";
+    private static final String COUNT_UNCLAIMED = "SELECT COUNT(*) FROM mailbox WHERE owner_uuid = ? AND claimed = 0;";
     private static final String MARK_CLAIMED = "UPDATE mailbox SET claimed = 1 WHERE entry_id = ?;";
     //</editor-fold>
 
@@ -92,15 +93,19 @@ public class MySqlMailboxStorage implements MailboxStorage {
     }
 
     @Override
-    public CompletableFuture<Boolean> markClaimed(UUID entryId) {
+    public CompletableFuture<Integer> countUnclaimed(UUID owner) {
         return CompletableFuture.supplyAsync(() -> {
-            try (Connection conn = dbManager.getConnection(); PreparedStatement ps = conn.prepareStatement(MARK_CLAIMED)) {
-                ps.setString(1, entryId.toString());
-                int rowsAffected = ps.executeUpdate();
-                return rowsAffected > 0;
+            try (Connection conn = dbManager.getConnection(); PreparedStatement ps = conn.prepareStatement(COUNT_UNCLAIMED)) {
+                ps.setString(1, owner.toString());
+                try (ResultSet rs = ps.executeQuery()) {
+                    if (rs.next()) {
+                        return rs.getInt(1);
+                    }
+                    return 0;
+                }
             } catch (SQLException e) {
                 e.printStackTrace();
-                return false;
+                return 0;
             }
         }, dbManager.getExecutor());
     }
@@ -133,5 +138,19 @@ public class MySqlMailboxStorage implements MailboxStorage {
         } else {
             ps.setNull(index, Types.VARCHAR);
         }
+    }
+    
+    @Override
+    public CompletableFuture<Boolean> markClaimed(UUID entryId) {
+        return CompletableFuture.supplyAsync(() -> {
+            try (Connection conn = dbManager.getConnection(); PreparedStatement ps = conn.prepareStatement(MARK_CLAIMED)) {
+                ps.setString(1, entryId.toString());
+                int rowsAffected = ps.executeUpdate();
+                return rowsAffected > 0;
+            } catch (SQLException e) {
+                e.printStackTrace();
+                return false;
+            }
+        }, dbManager.getExecutor());
     }
 }

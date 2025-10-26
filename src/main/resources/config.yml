@@ -4,6 +4,8 @@
 auction:
   max-auctions-per-player: 5
   auction-duration: 48h
+  defaults:
+    duration: 48h  # Default duration for new auctions (players can't set this via command)
   bid-increment: 5% # or flat value
   anti-sniping-extension: 30s
   tax-percentage: 5
@@ -34,6 +36,10 @@ mailbox:
 gui:
   # Title of the main auction house GUI.
   title-main: "&6KartaAuctionHouse"
+  # Title of the my listings GUI.
+  title-my-listings: "&6My Listings"
+  # Selects which GUI system to use: 'CUSTOM' for the original system or 'INVENTORY_FRAMEWORK' for the IF system
+  system: "INVENTORY_FRAMEWORK"  # Options: CUSTOM, INVENTORY_FRAMEWORK
   # Must be a multiple of 9.
   size: 54
   # Number of slots available for auction items (size - 9 for controls).

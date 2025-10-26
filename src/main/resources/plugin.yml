@@ -11,10 +11,6 @@ commands:
     description: Main command for KartaAuctionHouse.
     usage: /ah [subcommand]
     aliases: [auction, auctionhouse]
-  kahdebug:
-    description: Debug commands for KartaAuctionHouse troubleshooting.
-    usage: /kahdebug [test|testitem|services|config|economy]
-    permission: kartaauctionhouse.debug
 
 permissions:
   kartaauctionhouse.use:
@@ -29,9 +25,6 @@ permissions:
   kartaauctionhouse.reload:
     description: Allows reloading the plugin's configuration files.
     default: op
-  kartaauctionhouse.debug:
-    description: Access to debug commands for troubleshooting.
-    default: op
   kartaauctionhouse.admin:
     description: Access to all administrative features.
     default: op
@@ -42,7 +35,6 @@ permissions:
       kartaauctionhouse.notify: true
       kartaauctionhouse.history: true
       kartaauctionhouse.history.others: true
-      kartaauctionhouse.debug: true
 
   kartaauctionhouse.search:
     description: Allows using /ah search.

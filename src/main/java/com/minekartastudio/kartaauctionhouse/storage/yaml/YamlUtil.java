@@ -19,6 +19,7 @@ public class YamlUtil {
         map.put("endAt", auction.endAt());
         map.put("status", auction.status().name());
         map.put("version", auction.version());
+        if (auction.winner() != null) map.put("winner", auction.winner().toString());
         return map;
     }
 
@@ -31,7 +32,8 @@ public class YamlUtil {
                 ((Number) map.get("createdAt")).longValue(),
                 ((Number) map.get("endAt")).longValue(),
                 AuctionStatus.valueOf((String) map.get("status")),
-                (Integer) map.get("version")
+                (Integer) map.get("version"),
+                map.get("winner") != null ? UUID.fromString((String) map.get("winner")) : null
         );
     }
 

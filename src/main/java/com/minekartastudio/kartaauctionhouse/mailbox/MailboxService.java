@@ -61,6 +61,10 @@ public class MailboxService {
     public CompletableFuture<List<MailboxEntry>> getUnclaimed(UUID player) {
         return mailboxStorage.getUnclaimed(player);
     }
+    
+    public CompletableFuture<Integer> getMailboxCount(UUID player) {
+        return mailboxStorage.countUnclaimed(player);
+    }
 
     public CompletableFuture<Boolean> claimEntry(Player player, MailboxEntry entryToClaim) {
         if (entryToClaim.type() == MailboxType.MONEY) {

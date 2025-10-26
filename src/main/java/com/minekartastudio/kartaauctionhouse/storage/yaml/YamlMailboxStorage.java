@@ -107,6 +107,20 @@ public class YamlMailboxStorage implements MailboxStorage {
     }
 
     @Override
+    public CompletableFuture<Integer> countUnclaimed(UUID owner) {
+        return CompletableFuture.supplyAsync(() -> {
+            lock.readLock().lock();
+            try {
+                return (int) mailboxCache.values().stream()
+                        .filter(e -> e.owner().equals(owner) && !e.claimed())
+                        .count();
+            } finally {
+                lock.readLock().unlock();
+            }
+        });
+    }
+    
+    @Override
     public CompletableFuture<Boolean> markClaimed(UUID entryId) {
         return CompletableFuture.supplyAsync(() -> {
             lock.writeLock().lock();

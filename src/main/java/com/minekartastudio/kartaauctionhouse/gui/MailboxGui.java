@@ -23,7 +23,7 @@ public class MailboxGui extends PaginatedGui {
 
     @Override
     protected String getTitle() {
-        return kah.getConfigManager().getMessages().getString("gui.mailbox-title", "&1My Mailbox");
+        return kah.getConfigManager().getMessage("gui.mailbox-title");
     }
 
     @Override
@@ -44,7 +44,9 @@ public class MailboxGui extends PaginatedGui {
 
                 plugin.getServer().getScheduler().runTask(plugin, () -> {
                     addControlBar();
-                    inventory.setItem(46, new GuiItemBuilder(Material.ARROW).setName("&aBack to AH").build());
+                    String backName = kah.getConfigManager().getMessage("gui.control-items.back");
+                    String[] backLore = kah.getConfigManager().getMessages().getStringList("gui.control-items.back-lore").toArray(new String[0]);
+                    inventory.setItem(46, new GuiItemBuilder(Material.ARROW).setName(backName).setLore(backLore).build());
                 });
             }, kah.getAsyncExecutor());
     }
@@ -53,12 +55,24 @@ public class MailboxGui extends PaginatedGui {
         if (entry.type() == MailboxType.ITEM) {
             ItemStack item = entry.item().toItemStack();
             return new GuiItemBuilder(item)
-                    .setLore("&7Reason: " + entry.note(), "", "&aClick to claim this item!")
+                    .setLore(
+                        "&7Type: &eItem",
+                        "&7Reason: &f" + entry.note(),
+                        "&7Received: &e" + new java.text.SimpleDateFormat("MM/dd HH:mm").format(new java.util.Date(entry.createdAt())),
+                        "",
+                        "&a&oClick to claim this item!"
+                    )
                     .build();
         } else { // MONEY
             return new GuiItemBuilder(Material.GOLD_NUGGET)
-                    .setName("&e" + kah.getEconomyRouter().getService().format(entry.amount()))
-                    .setLore("&7Reason: " + entry.note(), "", "&aClick to claim this money!")
+                    .setName("&e&l" + kah.getEconomyRouter().getService().format(entry.amount()))
+                    .setLore(
+                        "&7Type: &eMoney",
+                        "&7Reason: &f" + entry.note(),
+                        "&7Received: &e" + new java.text.SimpleDateFormat("MM/dd HH:mm").format(new java.util.Date(entry.createdAt())),
+                        "",
+                        "&a&oClick to claim this money!"
+                    )
                     .build();
         }
     }

@@ -27,4 +27,11 @@ public interface MailboxStorage {
      * @return A future completing with true if the update was successful, false otherwise.
      */
     CompletableFuture<Boolean> markClaimed(UUID entryId);
+    
+    /**
+     * Counts the number of unclaimed mailbox entries for a specific player.
+     * @param owner The UUID of the player
+     * @return A future completing with the count of unclaimed entries
+     */
+    CompletableFuture<Integer> countUnclaimed(UUID owner);
 }

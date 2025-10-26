@@ -51,10 +51,14 @@ public class MyListingsGui extends PaginatedGui {
             lore.add("&7Time Left: &e" + TimeUtil.formatDuration(auction.endAt() - System.currentTimeMillis()));
         }
 
-        lore.add("&7Price: &e" + kah.getEconomyRouter().getService().format(auction.price()));
+        if (auction.currentBid() != null) {
+            lore.add("&7Highest Bid: &e" + kah.getEconomyRouter().getService().format(auction.currentBid()));
+        } else {
+            lore.add("&7Starting Price: &e" + kah.getEconomyRouter().getService().format(auction.startingPrice()));
+        }
 
         lore.add("");
-        if (auction.status() == AuctionStatus.ACTIVE) {
+        if (auction.status() == AuctionStatus.ACTIVE && auction.currentBid() == null) {
             lore.add("&cClick to cancel this auction.");
         } else {
             lore.add("&7This auction cannot be cancelled.");
@@ -74,7 +78,7 @@ public class MyListingsGui extends PaginatedGui {
 
         if (event.getSlot() < itemsPerPage && auctions != null && event.getSlot() < auctions.size()) {
             Auction clickedAuction = auctions.get(event.getSlot());
-            if (clickedAuction.status() == AuctionStatus.ACTIVE) {
+            if (clickedAuction.status() == AuctionStatus.ACTIVE && clickedAuction.currentBid() == null) {
                 player.closeInventory();
                 kah.getAuctionService().cancelAuction(player, clickedAuction.id()).thenAccept(success -> {
                     if (success) {

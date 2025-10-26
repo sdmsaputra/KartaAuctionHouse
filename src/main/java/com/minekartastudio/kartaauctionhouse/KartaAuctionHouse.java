@@ -15,10 +15,7 @@ import com.minekartastudio.kartaauctionhouse.notification.NotificationManager;
 import com.minekartastudio.kartaauctionhouse.transaction.TransactionLogger;
 import com.minekartastudio.kartaauctionhouse.storage.TransactionStorage;
 import com.minekartastudio.kartaauctionhouse.gui.SearchInputListener;
-import com.minekartastudio.kartaauctionhouse.gui.GuiEventListener;
-import com.minekartastudio.kartaauctionhouse.debug.DebugCommands;
 import com.minekartastudio.kartaauctionhouse.players.PlayerSettingsService;
-import com.minekartastudio.kartaauctionhouse.util.CommandTester;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.util.concurrent.ExecutorService;
@@ -37,7 +34,6 @@ public class KartaAuctionHouse extends JavaPlugin {
     private NotificationManager notificationManager;
     private TransactionLogger transactionLogger;
     private SearchInputListener searchInputListener;
-    private GuiEventListener guiEventListener;
     private PlayerSettingsService playerSettingsService;
 
     @Override
@@ -95,20 +91,6 @@ public class KartaAuctionHouse extends JavaPlugin {
         // 6. Register Commands & Listeners
         this.getCommand("ah").setExecutor(new AuctionCommand(this, auctionService, mailboxService, configManager, playerSettingsService));
         this.searchInputListener = new SearchInputListener(this);
-        this.guiEventListener = new GuiEventListener(this);
-
-        // Register debug commands if enabled
-        if (getConfig().getBoolean("debug.enabled", false)) {
-            this.getCommand("kahdebug").setExecutor(new DebugCommands(this));
-            getLogger().info("Debug commands enabled. Use /kahdebug for troubleshooting.");
-        }
-
-        // Test command registration if in debug mode
-        if (getConfig().getBoolean("debug.enabled", false)) {
-            CommandTester commandTester = new CommandTester(this);
-            commandTester.testAllCommands();
-            commandTester.logAllCommands();
-        }
 
         // 7. Start Tasks
         new AuctionExpirer(auctionService).runTaskTimerAsynchronously(this, 20 * 30, 20 * 30); // Every 30 seconds
@@ -118,11 +100,6 @@ public class KartaAuctionHouse extends JavaPlugin {
 
     @Override
     public void onDisable() {
-        // Close all active GUIs before shutdown
-        if (guiEventListener != null) {
-            guiEventListener.closeAllGuis();
-        }
-
         if (databaseManager != null) {
             databaseManager.close();
         }
@@ -141,7 +118,6 @@ public class KartaAuctionHouse extends JavaPlugin {
     public NotificationManager getNotificationManager() { return notificationManager; }
     public TransactionLogger getTransactionLogger() { return transactionLogger; }
     public SearchInputListener getSearchInputListener() { return searchInputListener; }
-    public GuiEventListener getGuiEventListener() { return guiEventListener; }
     public PlayerSettingsService getPlayerSettingsService() { return playerSettingsService; }
     public ExecutorService getAsyncExecutor() { return asyncExecutor; }
 }

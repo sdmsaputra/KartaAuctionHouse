@@ -3,6 +3,7 @@ package com.minekartastudio.kartaauctionhouse.storage.sql;
 import com.google.common.collect.ImmutableList;
 import com.minekartastudio.kartaauctionhouse.auction.model.Auction;
 import com.minekartastudio.kartaauctionhouse.auction.model.AuctionStatus;
+import com.minekartastudio.kartaauctionhouse.auction.model.Bid;
 import com.minekartastudio.kartaauctionhouse.common.SerializedItem;
 import com.minekartastudio.kartaauctionhouse.gui.model.AuctionCategory;
 import com.minekartastudio.kartaauctionhouse.gui.model.SortOrder;
@@ -32,20 +33,35 @@ public class MySqlAuctionStorage implements AuctionStorage {
           item_base64      LONGTEXT NOT NULL,
           item_type        VARCHAR(64) NOT NULL,
           item_name        VARCHAR(255) NULL,
-          price            DOUBLE NOT NULL,
+          starting_price   DOUBLE NOT NULL,
+          current_bid      DOUBLE NULL,
+          current_bidder   CHAR(36) NULL,
+          buy_now_price    DOUBLE NULL,
+          reserve_price    DOUBLE NULL,
           created_at       BIGINT NOT NULL,
           end_at           BIGINT NOT NULL,
           status           VARCHAR(16) NOT NULL,
           version          INT NOT NULL
         );""";
+    private static final String CREATE_BIDS_TABLE = """
+        CREATE TABLE IF NOT EXISTS bids (
+          bid_id           CHAR(36) PRIMARY KEY,
+          auction_id       CHAR(36) NOT NULL,
+          bidder_uuid      CHAR(36) NOT NULL,
+          amount           DOUBLE NOT NULL,
+          created_at       BIGINT NOT NULL,
+          FOREIGN KEY (auction_id) REFERENCES auctions(auction_id) ON DELETE CASCADE
+        );""";
     private static final String CREATE_AUCTIONS_INDEX = "CREATE INDEX IF NOT EXISTS idx_auctions_active ON auctions (status, end_at);";
+    private static final String CREATE_BIDS_INDEX = "CREATE INDEX IF NOT EXISTS idx_bids_auction ON bids (auction_id);";
 
-    private static final String INSERT_AUCTION = "INSERT INTO auctions (auction_id, seller_uuid, item_base64, item_type, item_name, price, created_at, end_at, status, version) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?);";
+    private static final String INSERT_AUCTION = "INSERT INTO auctions (auction_id, seller_uuid, item_base64, item_type, item_name, starting_price, current_bid, current_bidder, buy_now_price, reserve_price, created_at, end_at, status, version) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);";
+    private static final String INSERT_BID = "INSERT INTO bids (bid_id, auction_id, bidder_uuid, amount, created_at) VALUES (?, ?, ?, ?, ?);";
     private static final String FIND_BY_ID = "SELECT * FROM auctions WHERE auction_id = ?;";
     private static final String FIND_BY_SELLER = "SELECT * FROM auctions WHERE seller_uuid = ? ORDER BY created_at DESC LIMIT ? OFFSET ?;";
     private static final String COUNT_ACTIVE_BY_SELLER = "SELECT COUNT(*) FROM auctions WHERE seller_uuid = ? AND status = 'ACTIVE';";
     private static final String FIND_EXPIRED = "SELECT * FROM auctions WHERE status = 'ACTIVE' AND end_at <= ? LIMIT ?;";
-    private static final String UPDATE_AUCTION_VERSIONED = "UPDATE auctions SET status = ?, version = ? WHERE auction_id = ? AND version = ?;";
+    private static final String UPDATE_AUCTION_VERSIONED = "UPDATE auctions SET current_bid = ?, current_bidder = ?, status = ?, version = ?, end_at = ? WHERE auction_id = ? AND version = ?;";
     //</editor-fold>
 
     public MySqlAuctionStorage(JavaPlugin plugin, DatabaseManager dbManager) {
@@ -57,8 +73,10 @@ public class MySqlAuctionStorage implements AuctionStorage {
     public void init() {
         try (Connection conn = dbManager.getConnection(); Statement stmt = conn.createStatement()) {
             stmt.execute(CREATE_AUCTIONS_TABLE);
+            stmt.execute(CREATE_BIDS_TABLE);
             stmt.execute(CREATE_AUCTIONS_INDEX);
-            plugin.getLogger().info("Auctions table initialized successfully.");
+            stmt.execute(CREATE_BIDS_INDEX);
+            plugin.getLogger().info("Auctions and Bids tables initialized successfully.");
         } catch (SQLException e) {
             plugin.getLogger().severe("Failed to initialize auction storage tables.");
             e.printStackTrace();
@@ -109,8 +127,8 @@ public class MySqlAuctionStorage implements AuctionStorage {
             // Sorting
             sql.append(" ORDER BY ");
             switch (sortOrder) {
-                case PRICE_ASC -> sql.append("price ASC");
-                case PRICE_DESC -> sql.append("price DESC");
+                case PRICE_ASC -> sql.append("COALESCE(current_bid, starting_price) ASC");
+                case PRICE_DESC -> sql.append("COALESCE(current_bid, starting_price) DESC");
                 case NEWEST -> sql.append("created_at DESC");
                 default -> sql.append("end_at ASC"); // TIME_LEFT
             }
@@ -184,11 +202,15 @@ public class MySqlAuctionStorage implements AuctionStorage {
                 ps.setString(3, a.item().getBase64());
                 ps.setString(4, a.item().toItemStack().getType().name());
                 ps.setString(5, a.item().toItemStack().hasItemMeta() && a.item().toItemStack().getItemMeta().hasDisplayName() ? a.item().toItemStack().getItemMeta().getDisplayName() : null);
-                ps.setDouble(6, a.price());
-                ps.setLong(7, a.createdAt());
-                ps.setLong(8, a.endAt());
-                ps.setString(9, a.status().name());
-                ps.setInt(10, a.version());
+                ps.setDouble(6, a.startingPrice());
+                setNullableDouble(ps, 7, a.currentBid());
+                setNullableUUID(ps, 8, a.currentBidder());
+                setNullableDouble(ps, 9, a.buyNowPrice());
+                setNullableDouble(ps, 10, a.reservePrice());
+                ps.setLong(11, a.createdAt());
+                ps.setLong(12, a.endAt());
+                ps.setString(13, a.status().name());
+                ps.setInt(14, a.version());
                 ps.executeUpdate();
             } catch (SQLException e) {
                 e.printStackTrace();
@@ -200,10 +222,13 @@ public class MySqlAuctionStorage implements AuctionStorage {
     public CompletableFuture<Boolean> updateAuctionIfVersionMatches(Auction a, int expectedVersion) {
         return CompletableFuture.supplyAsync(() -> {
             try (Connection conn = dbManager.getConnection(); PreparedStatement ps = conn.prepareStatement(UPDATE_AUCTION_VERSIONED)) {
-                ps.setString(1, a.status().name());
-                ps.setInt(2, a.version());
-                ps.setString(3, a.id().toString());
-                ps.setInt(4, expectedVersion);
+                setNullableDouble(ps, 1, a.currentBid());
+                setNullableUUID(ps, 2, a.currentBidder());
+                ps.setString(3, a.status().name());
+                ps.setInt(4, a.version());
+                ps.setLong(5, a.endAt());
+                ps.setString(6, a.id().toString());
+                ps.setInt(7, expectedVersion);
                 int rowsAffected = ps.executeUpdate();
                 return rowsAffected > 0;
             } catch (SQLException e) {
@@ -213,7 +238,22 @@ public class MySqlAuctionStorage implements AuctionStorage {
         }, dbManager.getExecutor());
     }
 
-    
+    @Override
+    public CompletableFuture<Void> insertBid(Bid b) {
+        return CompletableFuture.runAsync(() -> {
+            try (Connection conn = dbManager.getConnection(); PreparedStatement ps = conn.prepareStatement(INSERT_BID)) {
+                ps.setString(1, b.id().toString());
+                ps.setString(2, b.auctionId().toString());
+                ps.setString(3, b.bidder().toString());
+                ps.setDouble(4, b.amount());
+                ps.setLong(5, b.createdAt());
+                ps.executeUpdate();
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+        }, dbManager.getExecutor());
+    }
+
     @Override
     public CompletableFuture<List<Auction>> findExpiredUpTo(long nowEpochMillis, int batchSize) {
         return CompletableFuture.supplyAsync(() -> {
@@ -238,7 +278,11 @@ public class MySqlAuctionStorage implements AuctionStorage {
             UUID.fromString(rs.getString("auction_id")),
             UUID.fromString(rs.getString("seller_uuid")),
             SerializedItem.fromBase64(rs.getString("item_base64")),
-            rs.getDouble("price"),
+            rs.getDouble("starting_price"),
+            (Double) rs.getObject("current_bid"),
+            rs.getString("current_bidder") != null ? UUID.fromString(rs.getString("current_bidder")) : null,
+            (Double) rs.getObject("buy_now_price"),
+            (Double) rs.getObject("reserve_price"),
             rs.getLong("created_at"),
             rs.getLong("end_at"),
             AuctionStatus.valueOf(rs.getString("status")),

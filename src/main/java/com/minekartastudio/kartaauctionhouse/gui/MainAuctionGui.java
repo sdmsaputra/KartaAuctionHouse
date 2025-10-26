@@ -77,12 +77,21 @@ public class MainAuctionGui extends PaginatedGui {
         lore.add("&7Seller: &e" + kah.getPlayerNameCache().getName(auction.seller()).join());
         lore.add("&7Time Left: &e" + TimeUtil.formatDuration(auction.endAt() - System.currentTimeMillis()));
 
-        double price = auction.price();
-        String priceColor = playerBalance >= price ? "&a" : "&c";
-        lore.add(priceColor + "Price: &e" + kah.getEconomyRouter().getService().format(price));
+        double bidPrice = auction.currentBid() != null ? auction.currentBid() : auction.startingPrice();
+        String bidColor = playerBalance >= bidPrice ? "&a" : "&c";
+        if (auction.currentBid() != null) {
+            lore.add(bidColor + "Current Bid: &e" + kah.getEconomyRouter().getService().format(bidPrice));
+        } else {
+            lore.add(bidColor + "Starting Price: &e" + kah.getEconomyRouter().getService().format(bidPrice));
+        }
+
+        if (auction.buyNowPrice() != null) {
+            String buyNowColor = playerBalance >= auction.buyNowPrice() ? "&a" : "&c";
+            lore.add(buyNowColor + "Buy Now: &e" + kah.getEconomyRouter().getService().format(auction.buyNowPrice()));
+        }
 
         lore.add("");
-        lore.add("&aClick to purchase!");
+        lore.add("&aClick to bid or buy!");
 
         return builder.setLore(lore).build();
     }
@@ -97,17 +106,8 @@ public class MainAuctionGui extends PaginatedGui {
         // Handle clicking on an auction item
         if (slot >= 0 && slot < itemsPerPage && auctions != null && slot < auctions.size()) {
             Auction clickedAuction = auctions.get(slot);
-            // Direct purchase
-            kah.getAuctionService().buyItem(player, clickedAuction.id()).thenAccept(success -> {
-                if (success) {
-                    player.sendMessage(kah.getConfigManager().getPrefixedMessage("info.purchase-success",
-                        "{item}", clickedAuction.item().toItemStack().getType().toString()));
-                    // Refresh the GUI
-                    new MainAuctionGui(kah, player, page, sortOrder, searchQuery).open();
-                } else {
-                    player.sendMessage(kah.getConfigManager().getPrefixedMessage("errors.purchase-failed"));
-                }
-            });
+            // TODO: Open a detailed GUI for this auction
+            player.sendMessage("You clicked on auction: " + clickedAuction.id());
             return;
         }
 
