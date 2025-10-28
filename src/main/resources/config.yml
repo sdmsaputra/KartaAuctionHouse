@@ -1,4 +1,4 @@
-# KartaAuctionHouse Configuration
+# PlayerAuctions Configuration
 
 # --- Auction Settings ---
 auction:
@@ -6,8 +6,7 @@ auction:
   auction-duration: 48h
   defaults:
     duration: 48h  # Default duration for new auctions (players can't set this via command)
-  bid-increment: 5% # or flat value
-  anti-sniping-extension: 30s
+  min-price: 1.0
   tax-percentage: 5
   notification-methods: [chat, actionbar, title, sound]
 
@@ -35,7 +34,7 @@ mailbox:
 # --- GUI Settings ---
 gui:
   # Title of the main auction house GUI.
-  title-main: "&6KartaAuctionHouse"
+  title-main: "&6PlayerAuctions"
   # Title of the my listings GUI.
   title-my-listings: "&6My Listings"
   # Selects which GUI system to use: 'CUSTOM' for the original system or 'INVENTORY_FRAMEWORK' for the IF system
@@ -44,15 +43,13 @@ gui:
   size: 54
   # Number of slots available for auction items (size - 9 for controls).
   items-per-page: 45
+  # Border settings
+  border:
+    enabled: true
+    material: BLACK_STAINED_GLASS_PANE
+    name: " "
+    lore: []
 
 # --- Database Settings ---
-database:
-  # Storage type. Options: YAML, MYSQL
-  type: YAML
-  host: "localhost"
-  port: 3306
-  database: "auctionhouse"
-  username: "user"
-  password: "password"
-  pool-size: 10
-  use-ssl: false
+# Plugin now uses SQLite database located in plugin data folder
+# No database configuration required

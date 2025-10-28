@@ -1,6 +1,6 @@
-name: KartaAuctionHouse
+name: PlayerAuctions
 version: 2.0.0
-main: com.minekartastudio.kartaauctionhouse.KartaAuctionHouse
+main: com.minekarta.playerauction.PlayerAuction
 author: MinekartaStudio
 api-version: '1.21'
 depend: [Vault]
@@ -8,46 +8,54 @@ softdepend: [PlaceholderAPI, KartaEmeraldCurrency]
 
 commands:
   ah:
-    description: Main command for KartaAuctionHouse.
-    usage: /ah [subcommand]
+    description: Main command for PlayerAuctions - open auction house or manage listings.
+    usage: /ah [subcommand] [arguments]
     aliases: [auction, auctionhouse]
+  auction:
+    description: Alternative main command for PlayerAuctions - open auction house or manage listings.
+    usage: /auction [subcommand] [arguments]
+    aliases: [ah, auctionhouse]
+  auctionhouse:
+    description: Alternative main command for PlayerAuctions - open auction house or manage listings.
+    usage: /auctionhouse [subcommand] [arguments]
+    aliases: [ah, auction]
 
 permissions:
-  kartaauctionhouse.use:
+  playerauctions.use:
     description: Allows opening the main auction house GUI and using basic features.
     default: true
-  kartaauctionhouse.sell:
+  playerauctions.sell:
     description: Allows listing items for sale using /ah sell.
     default: true
-  kartaauctionhouse.cancel:
+  playerauctions.cancel:
     description: Allows cancelling your own auctions (if they have no bids).
     default: true
-  kartaauctionhouse.reload:
+  playerauctions.reload:
     description: Allows reloading the plugin's configuration files.
     default: op
-  kartaauctionhouse.admin:
+  playerauctions.admin:
     description: Access to all administrative features.
     default: op
     children:
-      kartaauctionhouse.reload: true
-      kartaauctionhouse.search: true
-      kartaauctionhouse.categories: true
-      kartaauctionhouse.notify: true
-      kartaauctionhouse.history: true
-      kartaauctionhouse.history.others: true
+      playerauctions.reload: true
+      playerauctions.search: true
+      playerauctions.categories: true
+      playerauctions.notify: true
+      playerauctions.history: true
+      playerauctions.history.others: true
 
-  kartaauctionhouse.search:
+  playerauctions.search:
     description: Allows using /ah search.
     default: true
-  kartaauctionhouse.categories:
+  playerauctions.categories:
     description: Allows using /ah categories.
     default: true
-  kartaauctionhouse.notify:
+  playerauctions.notify:
     description: Allows toggling notifications.
     default: true
-  kartaauctionhouse.history:
+  playerauctions.history:
     description: Allows viewing personal auction history.
     default: true
-  kartaauctionhouse.history.others:
+  playerauctions.history.others:
     description: Allows viewing others' auction history.
     default: op

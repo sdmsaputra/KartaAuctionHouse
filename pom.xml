@@ -4,8 +4,8 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <groupId>com.minekartastudio</groupId>
-    <artifactId>karta-auction-house</artifactId>
+    <groupId>com.minekarta</groupId>
+    <artifactId>player-auctions</artifactId>
     <version>1.0-SNAPSHOT</version>
     <packaging>jar</packaging>
 
@@ -13,7 +13,64 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <maven.compiler.source>21</maven.compiler.source>
         <maven.compiler.target>21</maven.compiler.target>
+        <!-- Version properties -->
+        <minecraft.version>1.21</minecraft.version>
+        <paper.version>1.21.8-R0.1-SNAPSHOT</paper.version>
+        <if.version>0.11.5</if.version>
+        <plugin.version>2.0.0</plugin.version>
     </properties>
+
+    <profiles>
+        <!-- Modern Minecraft versions (1.19 - 1.21) -->
+        <profile>
+            <id>modern</id>
+            <activation>
+                <activeByDefault>true</activeByDefault>
+            </activation>
+            <properties>
+                <minecraft.version>1.21</minecraft.version>
+                <paper.version>1.21.8-R0.1-SNAPSHOT</paper.version>
+                <if.version>0.11.5</if.version>
+                <plugin.version>2.0.0</plugin.version>
+                <build.finalName>PlayerAuctions-${plugin.version}-Modern</build.finalName>
+            </properties>
+        </profile>
+
+        <!-- Legacy Minecraft versions (1.16 - 1.18) -->
+        <profile>
+            <id>legacy</id>
+            <properties>
+                <minecraft.version>1.18.2</minecraft.version>
+                <paper.version>1.18.2-R0.1-SNAPSHOT</paper.version>
+                <if.version>0.10.8</if.version>
+                <plugin.version>1.9.9</plugin.version>
+                <build.finalName>PlayerAuctions-${plugin.version}-Legacy</build.finalName>
+            </properties>
+        </profile>
+
+        <!-- Specific version builds -->
+        <profile>
+            <id>1.20</id>
+            <properties>
+                <minecraft.version>1.20</minecraft.version>
+                <paper.version>1.20.6-R0.1-SNAPSHOT</paper.version>
+                <if.version>0.11.5</if.version>
+                <plugin.version>2.0.0</plugin.version>
+                <build.finalName>PlayerAuctions-${plugin.version}-1.20</build.finalName>
+            </properties>
+        </profile>
+
+        <profile>
+            <id>1.19</id>
+            <properties>
+                <minecraft.version>1.19</minecraft.version>
+                <paper.version>1.19.4-R0.1-SNAPSHOT</paper.version>
+                <if.version>0.11.5</if.version>
+                <plugin.version>2.0.0</plugin.version>
+                <build.finalName>PlayerAuctions-${plugin.version}-1.19</build.finalName>
+            </properties>
+        </profile>
+    </profiles>
 
     <repositories>
         <repository>
@@ -34,7 +91,7 @@
         <dependency>
             <groupId>io.papermc.paper</groupId>
             <artifactId>paper-api</artifactId>
-            <version>1.21.8-R0.1-SNAPSHOT</version>
+            <version>${paper.version}</version>
             <scope>provided</scope>
         </dependency>
         <dependency>
@@ -50,15 +107,9 @@
             <scope>provided</scope>
         </dependency>
         <dependency>
-            <groupId>com.zaxxer</groupId>
-            <artifactId>HikariCP</artifactId>
-            <version>5.1.0</version>
-            <scope>compile</scope>
-        </dependency>
-        <dependency>
-            <groupId>mysql</groupId>
-            <artifactId>mysql-connector-java</artifactId>
-            <version>8.0.33</version>
+            <groupId>org.xerial</groupId>
+            <artifactId>sqlite-jdbc</artifactId>
+            <version>3.45.3.0</version>
             <scope>compile</scope>
         </dependency>
         <dependency>
@@ -76,7 +127,7 @@
         <dependency>
             <groupId>com.github.stefvanschie.inventoryframework</groupId>
             <artifactId>IF</artifactId>
-            <version>0.11.5</version>
+            <version>${if.version}</version>
             <scope>compile</scope>
         </dependency>
         <dependency>
@@ -84,12 +135,6 @@
             <artifactId>junit-jupiter</artifactId>
             <version>5.10.1</version>
             <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>com.github.stefvanschie.inventoryframework</groupId>
-            <artifactId>IF</artifactId>
-            <version>0.11.5</version>
-            <scope>compile</scope>
         </dependency>
     </dependencies>
 
@@ -115,34 +160,43 @@
                             <goal>shade</goal>
                         </goals>
                         <configuration>
+                            <finalName>${build.finalName}</finalName>
+                            <filters>
+                                <filter>
+                                    <artifact>*:*</artifact>
+                                    <excludes>
+                                        <exclude>META-INF/LICENSE.txt</exclude>
+                                        <exclude>META-INF/MANIFEST.MF</exclude>
+                                        <exclude>META-INF/versions/9/module-info.class</exclude>
+                                        <exclude>META-INF/versions/11/module-info.class</exclude>
+                                        <exclude>META-INF/versions/17/module-info.class</exclude>
+                                    </excludes>
+                                </filter>
+                            </filters>
                             <relocations>
                                 <relocation>
                                     <pattern>com.zaxxer.hikari</pattern>
-                                    <shadedPattern>com.minekartastudio.kartaauctionhouse.lib.hikaricp</shadedPattern>
+                                    <shadedPattern>com.minekarta.playerauction.lib.hikaricp</shadedPattern>
                                 </relocation>
                                 <relocation>
                                     <pattern>com.mysql</pattern>
-                                    <shadedPattern>com.minekartastudio.kartaauctionhouse.lib.mysql</shadedPattern>
+                                    <shadedPattern>com.minekarta.playerauction.lib.mysql</shadedPattern>
                                 </relocation>
                                 <relocation>
                                     <pattern>com.google.protobuf</pattern>
-                                    <shadedPattern>com.minekartastudio.kartaauctionhouse.lib.protobuf</shadedPattern>
+                                    <shadedPattern>com.minekarta.playerauction.lib.protobuf</shadedPattern>
                                 </relocation>
                                 <relocation>
                                     <pattern>org.slf4j</pattern>
-                                    <shadedPattern>com.minekartastudio.kartaauctionhouse.lib.slf4j</shadedPattern>
+                                    <shadedPattern>com.minekarta.playerauction.lib.slf4j</shadedPattern>
                                 </relocation>
                                 <relocation>
                                     <pattern>org.yaml</pattern>
-                                    <shadedPattern>com.minekartastudio.kartaauctionhouse.lib.yaml</shadedPattern>
+                                    <shadedPattern>com.minekarta.playerauction.lib.yaml</shadedPattern>
                                 </relocation>
                                 <relocation>
                                     <pattern>com.github.stefvanschie.inventoryframework</pattern>
-                                    <shadedPattern>com.minekartastudio.kartaauctionhouse.lib.inventoryframework</shadedPattern>
-                                </relocation>
-                                <relocation>
-                                    <pattern>com.github.stefvanschie.inventoryframework</pattern>
-                                    <shadedPattern>com.minekartastudio.kartaauctionhouse.lib.if</shadedPattern>
+                                    <shadedPattern>com.minekarta.playerauction.lib.inventoryframework</shadedPattern>
                                 </relocation>
                             </relocations>
                         </configuration>

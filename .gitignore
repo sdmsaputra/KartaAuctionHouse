@@ -1,8 +1,31 @@
-# Gradle
-.gradle/
-build/
+# Maven
+target/
+dependency-reduced-pom.xml
+
+# IDE
+.idea/
+*.iml
+*.iws
+.idea_modules/
+.vscode/
+*.swp
+*.swo
+*~
 
 # Logs
 *.log
-target/
-dependency-reduced-pom.xml
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Temporary files
+*.tmp
+*.temp
+*.jar
+!PlayerAuctions-*.jar
+
+# Build outputs
+build/
+out/
+dist/
